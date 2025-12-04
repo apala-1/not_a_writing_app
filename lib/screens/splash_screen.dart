@@ -9,16 +9,12 @@ class SplashScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-
           // TOP wave
           Positioned(
             top: 0,
             right: 0,
             left: 0,
-            child: Image.asset(
-              'assets/wave_right.png',
-              fit: BoxFit.cover,
-            ),
+            child: Image.asset('assets/wave_right.png', fit: BoxFit.cover),
           ),
 
           // BOTTOM wave
@@ -26,12 +22,26 @@ class SplashScreen extends StatelessWidget {
             bottom: 0,
             right: 0,
             left: 0,
-            child: Image.asset(
-              'assets/wave_left.png',
-              fit: BoxFit.cover,
+            child: Image.asset('assets/wave_left.png', fit: BoxFit.cover),
+          ),
+          // Center logo and title
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('assets/pencil.png', width: 120),
+                const SizedBox(height: 14),
+                const Text(
+                  "Not A Writing App",
+                  style: TextStyle(
+                    color: Color(0xFFFF7A00),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 18,
+                  ),
+                ),
+              ],
             ),
           ),
-
         ],
       ),
     );
