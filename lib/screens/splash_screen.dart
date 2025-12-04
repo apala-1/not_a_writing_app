@@ -5,6 +5,15 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Navigate to onboarding after 2 seconds
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(seconds: 2), () {
+        if (context.mounted) {
+          Navigator.pushReplacementNamed(context, '/onboarding');
+        }
+      });
+    });
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
@@ -24,7 +33,8 @@ class SplashScreen extends StatelessWidget {
             left: 0,
             child: Image.asset('assets/wave_left.png', fit: BoxFit.cover),
           ),
-          // Center logo and title
+
+          // Center logo + title
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
