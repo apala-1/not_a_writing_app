@@ -38,7 +38,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
             // Top curve image (optional)
             Image.asset(
-              'assets/curve_top.png',
+              'assets/wave_right.png',
               height: 100,
             ),
 
@@ -194,7 +194,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
             // Bottom curve
             Image.asset(
-              'assets/curve_bottom.png',
+              'assets/wave_left.png',
               height: 120,
             ),
           ],
