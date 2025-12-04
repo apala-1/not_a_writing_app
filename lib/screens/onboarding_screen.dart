@@ -13,17 +13,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<Map<String, String>> onboardingData = [
     {
-      "image": "assets/pencil.png",
+      "image": "assets/onb_1.jpg",
       "title": "Write Freely",
       "subtitle": "Share your thoughts without needing to write a full book."
     },
     {
-      "image": "assets/pencil.png",
+      "image": "assets/onb_3.jpg",
       "title": "Connect Creatively",
       "subtitle": "Read small ideas, stories and writings from others."
     },
     {
-      "image": "assets/pencil.png",
+      "image": "assets/onb_2.jpg",
       "title": "Start Your Journey",
       "subtitle": "Write anything, anytime — without pressure."
     },
