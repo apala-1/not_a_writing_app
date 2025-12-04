@@ -24,23 +24,25 @@ class _SignUpPageState extends State<SignUpPage> {
           children: [
             // Go to login
             Align(
-              alignment: Alignment.topLeft,
-              child: Text(
-                "← Go to login",
-                style: TextStyle(
-                  color: Color(0xFFFF7F00),
-                  fontSize: 14,
-                ),
-              ),
-            ),
+                    alignment: Alignment.topLeft,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, '/login');
+                      },
+                      child: const Text(
+                        "<  Log In",
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Color(0xFFFF7F00),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+
 
             const SizedBox(height: 30),
 
-            // Top curve image (optional)
-            Image.asset(
-              'assets/wave_right.png',
-              height: 100,
-            ),
 
             const SizedBox(height: 20),
 
