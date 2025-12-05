@@ -180,7 +180,9 @@ class _LoginPageState extends State<LoginPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.pushReplacementNamed(context, '/dashboard');
+                        },
                         child: Image.asset(
                           'assets/google.png',
                           height: 40,
