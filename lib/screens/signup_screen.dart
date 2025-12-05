@@ -193,12 +193,6 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
 
             const SizedBox(height: 60),
-
-            // Bottom curve
-            Image.asset(
-              'assets/wave_left.png',
-              height: 120,
-            ),
           ],
         ),
       ),
