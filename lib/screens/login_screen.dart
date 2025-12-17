@@ -21,7 +21,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [Image.asset(
-                        'assets/pencil.png',
+                        'assets/images/pencil.png',
                         height: 90,
                       ),
                       
@@ -174,7 +174,7 @@ class _LoginPageState extends State<LoginPage> {
                               Navigator.pushReplacementNamed(context, '/dashboard');
                             },
                             child: Image.asset(
-                              'assets/google.png',
+                              'assets/images/google.png',
                               height: 40,
                             ),
                           ),
@@ -182,7 +182,7 @@ class _LoginPageState extends State<LoginPage> {
                           GestureDetector(
                             onTap: () {},
                             child: Image.asset(
-                              'assets/facebook.png',
+                              'assets/images/facebook.png',
                               height: 40,
                             ),
                           )],)

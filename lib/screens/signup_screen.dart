@@ -26,7 +26,7 @@ class _SignUpPageState extends State<SignUpPage> {
             children: [
               // Logo
               Image.asset(
-                'assets/pencil.png',
+                'assets/images/pencil.png',
                 height: 100,
               ),
           
@@ -168,9 +168,9 @@ class _SignUpPageState extends State<SignUpPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Image.asset('assets/google.png', height: 28),
+                        Image.asset('assets/images/google.png', height: 28),
                         const SizedBox(width: 20),
-                        Image.asset('assets/facebook.png', height: 28),
+                        Image.asset('assets/images/facebook.png', height: 28),
                       ],
                     ),
                   ],

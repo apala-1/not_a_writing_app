@@ -20,18 +20,18 @@ class SplashScreen extends StatelessWidget {
               Positioned(
                 top: 0,
                 right: 0,
-                child: Image.asset("assets/top_right.png"),
+                child: Image.asset("assets/images/top_right.png"),
               ),
               Positioned(
                 bottom: 0,
                 left: 0,
-                child: Image.asset("assets/bottom_left.png"),
+                child: Image.asset("assets/images/bottom_left.png"),
               ),
               Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Image.asset("assets/pencil.png", height: 100),
+                    Image.asset("assets/images/pencil.png", height: 100),
                     SizedBox(height: 8),
                     Text("NOT A WRITING APP", style: TextStyle(
                       fontSize: 21,
