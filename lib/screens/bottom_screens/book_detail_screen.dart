@@ -26,7 +26,7 @@ class BookDetailScreen extends StatelessWidget {
               clipBehavior: Clip.hardEdge,
               child: Image.asset(
                 'assets/images/book_cover_two.png', 
-                height: 220,
+                height: 480,
                 fit: BoxFit.cover,
               ),
             ),

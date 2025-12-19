@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/colors.dart';
 
 class GenreChipList extends StatelessWidget {
   const GenreChipList({super.key});
@@ -14,10 +15,22 @@ class GenreChipList extends StatelessWidget {
         itemCount: genres.length,
         itemBuilder: (context, index) {
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 6),
             child: Chip(
-              label: Text(genres[index]),
-              backgroundColor: Colors.pink.shade100,
+              label: Text(
+                genres[index],
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              backgroundColor: AppColors.lightOrange,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 1.5,
+              shadowColor: Colors.black12,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
             ),
           );
         },

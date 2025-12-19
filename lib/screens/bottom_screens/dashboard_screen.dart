@@ -62,7 +62,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               // ⚡ Quick Actions
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   QuickActionItem(
                     icon: Icons.lightbulb_outline,

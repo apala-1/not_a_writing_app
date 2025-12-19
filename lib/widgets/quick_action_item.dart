@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/colors.dart';
 
 class QuickActionItem extends StatelessWidget {
   final IconData icon;
@@ -20,11 +21,22 @@ class QuickActionItem extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 28,
-            backgroundColor: Colors.orange.shade100,
-            child: Icon(icon, color: Colors.deepOrange.shade300),
+            backgroundColor: AppColors.lightOrange,
+            child: Icon(
+              icon,
+              color: AppColors.primaryOrange,
+              size: 28,
+            ),
           ),
           const SizedBox(height: 6),
-          Text(label),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+          ),
         ],
       ),
     );
