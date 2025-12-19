@@ -171,7 +171,7 @@ class _LoginPageState extends State<LoginPage> {
                         children: [
                           GestureDetector(
                             onTap: () {
-                              Navigator.pushReplacementNamed(context, '/dashboard');
+                              Navigator.pushReplacementNamed(context, '/bottom_navigation');
                             },
                             child: Image.asset(
                               'assets/images/google.png',

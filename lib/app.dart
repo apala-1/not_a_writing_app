@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:not_a_writing_app/screens/dashboard_screen.dart';
+import 'package:not_a_writing_app/screens/bottom_navigation_screen.dart';
+import 'package:not_a_writing_app/screens/bottom_screens/dashboard_screen.dart';
 import 'package:not_a_writing_app/screens/login_screen.dart';
 import 'package:not_a_writing_app/screens/onboarding_screen.dart';
 import 'package:not_a_writing_app/screens/signup_screen.dart';
@@ -22,6 +23,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignUpPage(),
         '/dashboard': (context) => const DashboardScreen(),
+        "/bottom_navigation": (context) => const BottomNavigationScreen(),
       },
     );
   }
