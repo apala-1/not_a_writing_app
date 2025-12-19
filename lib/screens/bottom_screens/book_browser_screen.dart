@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:not_a_writing_app/widgets/book_list_tile.dart';
+import 'package:not_a_writing_app/widgets/book_search_bar.dart';
+import 'package:not_a_writing_app/widgets/genre_chip_list.dart';
+import 'package:not_a_writing_app/widgets/section_header.dart';
 
 class BookBrowserScreen extends StatelessWidget {
   const BookBrowserScreen({super.key});
@@ -7,81 +11,51 @@ class BookBrowserScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.pink.shade50,
-      
+      appBar: AppBar(
+        backgroundColor: Colors.pink.shade50,
+        elevation: 0,
+        title: const Text(
+          'Browse Books',
+          style: TextStyle(color: Colors.black),
+        ),
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // 🔍 Search bar
-            TextField(
-              decoration: InputDecoration(
-                hintText: 'Search books...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: const Icon(Icons.mic),
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
+        child: ListView(
+          children: const [
+            BookSearchBar(),
+            SizedBox(height: 16),
+            GenreChipList(),
+            SizedBox(height: 24),
+
+            SectionHeader(title: 'Book List'),
+            BookListTile(
+              title: 'OTHER LONDON',
+              author: 'M.V. STOTT',
+              label: 'Book One',
             ),
-            const SizedBox(height: 16),
-
-            // 📚 Genre tabs
-            SizedBox(
-              height: 40,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: ['Horror', 'Mystery', 'Self-Help', 'Romance']
-                    .map((genre) => Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Chip(
-                            label: Text(genre),
-                            backgroundColor: Colors.pink.shade100,
-                          ),
-                        ))
-                    .toList(),
-              ),
+            BookListTile(
+              title: 'WALK INTO THE SHADOW',
+              author: 'Unknown',
+              label: 'Book Two',
             ),
-            const SizedBox(height: 16),
 
-            // 📖 Book List section
-            _buildSectionHeader('Book List'),
-            _buildBookTile('OTHER LONDON', 'M.V. STOTT', 'Book One'),
-            _buildBookTile('WALK INTO THE SHADOW', 'Unknown', 'Book Two'),
+            SizedBox(height: 24),
 
-            const SizedBox(height: 16),
-
-            // 🌟 Most Popular section
-            _buildSectionHeader('Most Popular'),
-            _buildBookTile('BOOK TITLE', 'AUTHOR NAME', 'Book One'),
-            _buildBookTile('THE NOVEL', 'AUTHOR NAME', 'Book Two'),
+            SectionHeader(title: 'Most Popular'),
+            BookListTile(
+              title: 'BOOK TITLE',
+              author: 'AUTHOR NAME',
+              label: 'Book One',
+            ),
+            BookListTile(
+              title: 'THE NOVEL',
+              author: 'AUTHOR NAME',
+              label: 'Book Two',
+            ),
           ],
         ),
-      ),
-
-    
-    );
-  }
-
-  // 🔖 Section header with "More >"
-  Widget _buildSectionHeader(String title) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        TextButton(onPressed: () {}, child: const Text('More >')),
-      ],
-    );
-  }
-
-  // 📘 Book tile
-  Widget _buildBookTile(String title, String author, String label) {
-    return Card(
-      child: ListTile(
-        leading: const Icon(Icons.book, color: Colors.pink),
-        title: Text(title),
-        subtitle: Text('$author • $label'),
-        trailing: const Icon(Icons.arrow_forward_ios),
-        onTap: () {},
       ),
     );
   }
