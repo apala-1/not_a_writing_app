@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:not_a_writing_app/theme/colors.dart';
 import 'package:not_a_writing_app/widgets/book_list_tile.dart';
 import 'package:not_a_writing_app/widgets/book_search_bar.dart';
 import 'package:not_a_writing_app/widgets/genre_chip_list.dart';
@@ -10,25 +11,35 @@ class BookBrowserScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.pink.shade50,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.pink.shade50,
-        elevation: 0,
+        backgroundColor: AppColors.background,
+        elevation: 1.5,
+        shadowColor: Colors.black12,
         title: const Text(
           'Browse Books',
-          style: TextStyle(color: Colors.black),
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: AppColors.textPrimary),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: const [
+            // 🔍 Search bar
             BookSearchBar(),
+
             SizedBox(height: 16),
+
+            // 📚 Genre chips
             GenreChipList(),
+
             SizedBox(height: 24),
 
+            // 📖 Book List
             SectionHeader(title: 'Book List'),
             BookListTile(
               title: 'OTHER LONDON',
@@ -43,6 +54,7 @@ class BookBrowserScreen extends StatelessWidget {
 
             SizedBox(height: 24),
 
+            // 🌟 Most Popular
             SectionHeader(title: 'Most Popular'),
             BookListTile(
               title: 'BOOK TITLE',

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:not_a_writing_app/theme/colors.dart';
 import 'package:not_a_writing_app/widgets/book_about_section.dart';
 import 'package:not_a_writing_app/widgets/book_action_button.dart';
 import 'package:not_a_writing_app/widgets/book_author_section.dart';
@@ -11,35 +12,61 @@ class BookDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.orange.shade50,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.orange.shade50,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+        backgroundColor: AppColors.background,
+        elevation: 1.5,
+        shadowColor: Colors.black12,
+        iconTheme: const IconThemeData(color: AppColors.textPrimary),
         title: const Text(
           'Book Details',
-          style: TextStyle(color: Colors.black),
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(
-          children: const [
-            BookActionButton(),
-            SizedBox(height: 12),
-            BookAuthorSection(),
-            SizedBox(height: 6),
-            BookRatingRow(),
-            SizedBox(height: 16),
-            BookAboutSection(),
-            SizedBox(height: 24),
-            Text(
-              'You may also like',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.cardBackground,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              clipBehavior: Clip.hardEdge,
+              child: Image.asset(
+                'assets/images/book_cover_two.png', 
+                height: 220,
+                fit: BoxFit.cover,
+              ),
             ),
-            SizedBox(height: 12),
-            BookSuggestionTile(title: 'BOOK TITLE'),
-            BookSuggestionTile(title: 'THE NOVEL'),
+
+            const SizedBox(height: 16),
+
+            // Read Button
+            BookActionButton(),
+
+            const SizedBox(height: 12),
+            const BookAuthorSection(),
+            const SizedBox(height: 6),
+            const BookRatingRow(),
+            const SizedBox(height: 16),
+            const BookAboutSection(),
+            const SizedBox(height: 24),
+
+            const Text(
+              'You may also like',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            const BookSuggestionTile(title: 'BOOK TITLE'),
+            const BookSuggestionTile(title: 'THE NOVEL'),
           ],
         ),
       ),
