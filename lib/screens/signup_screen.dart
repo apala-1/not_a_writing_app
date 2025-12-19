@@ -17,174 +17,198 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
-        child: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Logo
-              Image.asset(
-                'assets/images/pencil.png',
-                height: 100,
+      resizeToAvoidBottomInset: true,
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: EdgeInsets.only(
+                left: 30,
+                right: 30,
+                top: 40,
+                bottom: MediaQuery.of(context).viewInsets.bottom,
               ),
-          
-              const SizedBox(height: 15),
-          
-              // SIGN UP TEXT
-              const Text(
-                "SIGN UP",
-                style: TextStyle(
-                  color: Color(0xFFFF7F00),
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
                 ),
-              ),
-          
-              const SizedBox(height: 35),
-          
-              // FORM FIELDS
-              Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    // Full Name
-                    TextFormField(
-                      decoration: _inputStyle(
-                        icon: Icons.person,
-                        label: "full name",
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-          
-                    // Email
-                    TextFormField(
-                      decoration: _inputStyle(
-                        icon: Icons.email_outlined,
-                        label: "email",
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-          
-                    // Password
-                    TextFormField(
-                      obscureText: _obscurePassword,
-                      decoration: _inputStyle(
-                        icon: Icons.lock_outline,
-                        label: "password",
-                        suffix: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            setState(() => _obscurePassword = !_obscurePassword);
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-          
-                    // Confirm Password
-                    TextFormField(
-                      obscureText: _obscureConfirm,
-                      decoration: _inputStyle(
-                        icon: Icons.lock_outline,
-                        label: "confirm password",
-                        suffix: IconButton(
-                          icon: Icon(
-                            _obscureConfirm
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            setState(() => _obscureConfirm = !_obscureConfirm);
-                          },
-                        ),
-                      ),
-                    ),
-          
-                    const SizedBox(height: 10),
-          
-                    // Checkbox Row
-                    Row(
+                child: IntrinsicHeight(
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Checkbox(
-                          value: rememberMe,
-                          activeColor: Color(0xFFFF7F00),
-                          onChanged: (value) {
-                            setState(() {
-                              rememberMe = value!;
-                            });
-                          },
+                        Image.asset(
+                          'assets/images/pencil.png',
+                          height: 100,
                         ),
-                        const Text("Remember Me"),
-                      ],
-                    ),
-          
-                    const SizedBox(height: 20),
-          
-                    // SIGN UP BUTTON
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFFFF7F00),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                        ),
-                        child: const Text(
-                          "Sign Up",
+
+                        const SizedBox(height: 15),
+
+                        const Text(
+                          "SIGN UP",
                           style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.white,
+                            color: Color(0xFFFF7F00),
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
-                    ),
-          
-                    SizedBox(height: 8),
-                  
-                        GestureDetector(
-                              onTap: () {
-                                Navigator.pushReplacementNamed(context, '/login');
-                              },
-                              child: const Text(
-                                "Don't have an account yet? Log In",
-                                style: TextStyle(
-                                  color: Color(0xFFFF7F00),
-                                  fontWeight: FontWeight.w500,
+
+                        const SizedBox(height: 35),
+
+                        Form(
+                          key: _formKey,
+                          child: Column(
+                            children: [
+                              TextFormField(
+                                decoration: _inputStyle(
+                                  icon: Icons.person,
+                                  label: "full name",
                                 ),
                               ),
-                            ),
-                    const SizedBox(height: 10),
-          
-                    // Social Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset('assets/images/google.png', height: 28),
-                        const SizedBox(width: 20),
-                        Image.asset('assets/images/facebook.png', height: 28),
+                              const SizedBox(height: 20),
+
+                              TextFormField(
+                                decoration: _inputStyle(
+                                  icon: Icons.email_outlined,
+                                  label: "email",
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+
+                              TextFormField(
+                                obscureText: _obscurePassword,
+                                decoration: _inputStyle(
+                                  icon: Icons.lock_outline,
+                                  label: "password",
+                                  suffix: IconButton(
+                                    icon: Icon(
+                                      _obscurePassword
+                                          ? Icons.visibility_off
+                                          : Icons.visibility,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _obscurePassword =
+                                            !_obscurePassword;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+
+                              TextFormField(
+                                obscureText: _obscureConfirm,
+                                decoration: _inputStyle(
+                                  icon: Icons.lock_outline,
+                                  label: "confirm password",
+                                  suffix: IconButton(
+                                    icon: Icon(
+                                      _obscureConfirm
+                                          ? Icons.visibility_off
+                                          : Icons.visibility,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _obscureConfirm =
+                                            !_obscureConfirm;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 10),
+
+                              Row(
+                                children: [
+                                  Checkbox(
+                                    value: rememberMe,
+                                    activeColor:
+                                        const Color(0xFFFF7F00),
+                                    onChanged: (v) {
+                                      setState(() {
+                                        rememberMe = v!;
+                                      });
+                                    },
+                                  ),
+                                  const Text("Remember Me"),
+                                ],
+                              ),
+
+                              const SizedBox(height: 20),
+
+                              SizedBox(
+                                width: double.infinity,
+                                height: 50,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        const Color(0xFFFF7F00),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(25),
+                                    ),
+                                  ),
+                                  onPressed: () {},
+                                  child: const Text(
+                                    "Sign Up",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 8),
+
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.pushReplacementNamed(
+                                      context, '/login');
+                                },
+                                child: const Text(
+                                  "Already have an account? Log In",
+                                  style: TextStyle(
+                                    color: Color(0xFFFF7F00),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 12),
+
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    'assets/images/google.png',
+                                    height: 28,
+                                  ),
+                                  const SizedBox(width: 20),
+                                  Image.asset(
+                                    'assets/images/facebook.png',
+                                    height: 28,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ],
-          ),
+            );
+          },
         ),
-            ),
       ),
     );
   }
 
-  // INPUT STYLE FUNCTION
   InputDecoration _inputStyle({
     required IconData icon,
     required String label,
@@ -196,10 +220,12 @@ class _SignUpPageState extends State<SignUpPage> {
       labelText: label,
       labelStyle: const TextStyle(fontSize: 14),
       enabledBorder: const UnderlineInputBorder(
-        borderSide: BorderSide(color: Color(0xFFFF7F00), width: 1.3),
+        borderSide:
+            BorderSide(color: Color(0xFFFF7F00), width: 1.3),
       ),
       focusedBorder: const UnderlineInputBorder(
-        borderSide: BorderSide(color: Color(0xFFFF7F00), width: 1.8),
+        borderSide:
+            BorderSide(color: Color(0xFFFF7F00), width: 1.8),
       ),
     );
   }
