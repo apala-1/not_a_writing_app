@@ -7,7 +7,6 @@ import 'package:not_a_writing_app/widgets/streak_card.dart';
 
 import 'book_detail_screen.dart';
 import '../write_create_screen.dart';
-import '../post_setup_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -67,12 +66,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   QuickActionItem(
                     icon: Icons.lightbulb_outline,
                     label: 'Prompt',
-                    onTap: () => _navigateTo(const PostSetupScreen()),
+                    onTap: () {}
                   ),
                   QuickActionItem(
                     icon: Icons.menu_book_outlined,
                     label: 'Reading',
-                    onTap: () => _navigateTo(const BookDetailScreen()),
+                    onTap: () {}
                   ),
                   QuickActionItem(
                     icon: Icons.edit_outlined,
