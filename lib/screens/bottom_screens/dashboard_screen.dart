@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:not_a_writing_app/theme/colors.dart';
 import 'package:not_a_writing_app/widgets/post_card.dart';
 import 'package:not_a_writing_app/widgets/progress_card.dart';
 import 'package:not_a_writing_app/widgets/quick_action_item.dart';
 import 'package:not_a_writing_app/widgets/streak_card.dart';
+
 import 'book_detail_screen.dart';
 import '../write_create_screen.dart';
 import '../post_setup_screen.dart';
@@ -22,55 +24,80 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.orange.shade50,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // 👋 Greeting
               const Text(
                 'Hi Apala 👋',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
-              const SizedBox(height: 16),
 
+              const SizedBox(height: 4),
+
+              const Text(
+                'Let’s write something meaningful today',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // 🔥 Streak Card
               StreakCard(
                 onStartWriting: () => _navigateTo(const WriteScreen()),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 28),
 
+              // ⚡ Quick Actions
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   QuickActionItem(
-                    icon: Icons.lightbulb,
+                    icon: Icons.lightbulb_outline,
                     label: 'Prompt',
                     onTap: () => _navigateTo(const PostSetupScreen()),
                   ),
                   QuickActionItem(
-                    icon: Icons.book,
+                    icon: Icons.menu_book_outlined,
                     label: 'Reading',
                     onTap: () => _navigateTo(const BookDetailScreen()),
                   ),
                   QuickActionItem(
-                    icon: Icons.edit,
+                    icon: Icons.edit_outlined,
                     label: 'Writing',
                     onTap: () => _navigateTo(const WriteScreen()),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 36),
+
+              // 📈 Progress Section
               const Text(
                 'Your Progress',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
               ),
+
               const SizedBox(height: 12),
 
               ProgressCard(
-                title: 'Finish reading "Once in a LifeTime"',
+                title: 'Finish reading "Once in a Lifetime"',
                 progress: 0.63,
                 onTap: () => _navigateTo(const BookDetailScreen()),
               ),
@@ -81,11 +108,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 onTap: () => _navigateTo(const WriteScreen()),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 36),
+
+              // 🌍 Discover Section
               const Text(
                 'Discover',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
               ),
+
               const SizedBox(height: 12),
 
               PostCard(

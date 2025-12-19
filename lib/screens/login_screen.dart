@@ -174,9 +174,11 @@ class _LoginPageState extends State<LoginPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Image.asset(
-                              'assets/images/google.png',
-                              height: 40,
+                            GestureDetector( onTap: () { Navigator.pushReplacementNamed(context, '/bottom_navigation'); },
+                              child: Image.asset(
+                                'assets/images/google.png',
+                                height: 40,
+                              ),
                             ),
                             const SizedBox(width: 30),
                             Image.asset(
