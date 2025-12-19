@@ -12,34 +12,21 @@ class BookBrowserScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 1.5,
-        shadowColor: Colors.black12,
-        title: const Text(
-          'Browse Books',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: const [
-            // 🔍 Search bar
+            // Search bar
             BookSearchBar(),
 
             SizedBox(height: 16),
 
-            // 📚 Genre chips
+            // Genre chips
             GenreChipList(),
 
             SizedBox(height: 24),
 
-            // 📖 Book List
+            // Book List
             SectionHeader(title: 'Book List'),
             BookListTile(
               title: 'OTHER LONDON',
@@ -54,7 +41,7 @@ class BookBrowserScreen extends StatelessWidget {
 
             SizedBox(height: 24),
 
-            // 🌟 Most Popular
+            // Most Popular
             SectionHeader(title: 'Most Popular'),
             BookListTile(
               title: 'BOOK TITLE',

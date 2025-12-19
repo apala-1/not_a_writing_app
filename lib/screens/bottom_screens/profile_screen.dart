@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:not_a_writing_app/theme/colors.dart';
 import 'package:not_a_writing_app/widgets/profile_action_tile.dart';
 import 'package:not_a_writing_app/widgets/profile_header.dart';
 import 'package:not_a_writing_app/widgets/profile_stat_card.dart';
@@ -9,20 +10,12 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.orange.shade50,
-      appBar: AppBar(
-        backgroundColor: Colors.orange.shade50,
-        elevation: 0,
-        title: const Text(
-          'Profile',
-          style: TextStyle(color: Colors.black),
-        ),
-        iconTheme: const IconThemeData(color: Colors.black),
-      ),
+      backgroundColor: AppColors.background,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            SizedBox(height: 40),
             const ProfileHeader(),
 
             const SizedBox(height: 24),
@@ -41,21 +34,28 @@ class ProfileScreen extends StatelessWidget {
             ProfileActionTile(
               icon: Icons.edit,
               title: 'Edit Profile',
+              backgroundColor: AppColors.cardBackground,
+              iconColor: AppColors.primaryOrange,
               onTap: () {},
             ),
             ProfileActionTile(
               icon: Icons.bookmark,
               title: 'Saved Posts',
+              backgroundColor: AppColors.cardBackground,
+              iconColor: AppColors.textSecondary,
               onTap: () {},
             ),
             ProfileActionTile(
               icon: Icons.settings,
               title: 'Settings',
+              backgroundColor: AppColors.cardBackground,
+              iconColor: AppColors.textSecondary,
               onTap: () {},
             ),
             ProfileActionTile(
               icon: Icons.logout,
               title: 'Log Out',
+              backgroundColor: AppColors.cardBackground,
               iconColor: Colors.red,
               onTap: () {},
             ),

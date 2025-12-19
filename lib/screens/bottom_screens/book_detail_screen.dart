@@ -13,19 +13,7 @@ class BookDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 1.5,
-        shadowColor: Colors.black12,
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        title: const Text(
-          'Book Details',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
+      
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(
