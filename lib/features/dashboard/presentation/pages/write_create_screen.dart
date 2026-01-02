@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/colors.dart';
+import 'package:not_a_writing_app/theme/colors.dart';
 
 class WriteScreen extends StatefulWidget {
   const WriteScreen({super.key});

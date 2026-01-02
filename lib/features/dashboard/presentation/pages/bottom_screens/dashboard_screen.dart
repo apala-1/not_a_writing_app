@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:not_a_writing_app/screens/write_create_screen.dart';
 import 'package:not_a_writing_app/theme/colors.dart';
 import 'package:not_a_writing_app/widgets/post_card.dart';
 import 'package:not_a_writing_app/widgets/progress_card.dart';
@@ -6,7 +7,6 @@ import 'package:not_a_writing_app/widgets/quick_action_item.dart';
 import 'package:not_a_writing_app/widgets/streak_card.dart';
 
 import 'book_detail_screen.dart';
-import '../write_create_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
