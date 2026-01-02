@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/pages/write_create_screen.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/widgets/post_card.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/widgets/progress_card.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/widgets/quick_action_item.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/widgets/streak_card.dart';
 import 'package:not_a_writing_app/theme/colors.dart';
-import 'package:not_a_writing_app/widgets/post_card.dart';
-import 'package:not_a_writing_app/widgets/progress_card.dart';
-import 'package:not_a_writing_app/widgets/quick_action_item.dart';
-import 'package:not_a_writing_app/widgets/streak_card.dart';
 
 import 'book_detail_screen.dart';
 

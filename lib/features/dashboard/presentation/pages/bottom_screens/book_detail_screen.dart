@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/widgets/book_about_section.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/widgets/book_action_button.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/widgets/book_author_section.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/widgets/book_rating_row.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/widgets/book_suggestion_tile.dart';
 import 'package:not_a_writing_app/theme/colors.dart';
-import 'package:not_a_writing_app/widgets/book_about_section.dart';
-import 'package:not_a_writing_app/widgets/book_action_button.dart';
-import 'package:not_a_writing_app/widgets/book_author_section.dart';
-import 'package:not_a_writing_app/widgets/book_rating_row.dart';
-import 'package:not_a_writing_app/widgets/book_suggestion_tile.dart';
 
 class BookDetailScreen extends StatelessWidget {
   const BookDetailScreen({super.key});

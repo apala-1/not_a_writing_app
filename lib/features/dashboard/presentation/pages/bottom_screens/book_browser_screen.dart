@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/widgets/book_list_tile.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/widgets/book_search_bar.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/widgets/genre_chip_list.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/widgets/section_header.dart';
 import 'package:not_a_writing_app/theme/colors.dart';
-import 'package:not_a_writing_app/widgets/book_list_tile.dart';
-import 'package:not_a_writing_app/widgets/book_search_bar.dart';
-import 'package:not_a_writing_app/widgets/genre_chip_list.dart';
-import 'package:not_a_writing_app/widgets/section_header.dart';
 
 class BookBrowserScreen extends StatelessWidget {
   const BookBrowserScreen({super.key});

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/widgets/profile_action_tile.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/widgets/profile_header.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/widgets/profile_stat_card.dart';
 import 'package:not_a_writing_app/theme/colors.dart';
-import 'package:not_a_writing_app/widgets/profile_action_tile.dart';
-import 'package:not_a_writing_app/widgets/profile_header.dart';
-import 'package:not_a_writing_app/widgets/profile_stat_card.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
