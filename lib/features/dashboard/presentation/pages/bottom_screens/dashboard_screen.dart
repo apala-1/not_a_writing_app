@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:not_a_writing_app/screens/write_create_screen.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/pages/write_create_screen.dart';
 import 'package:not_a_writing_app/theme/colors.dart';
 import 'package:not_a_writing_app/widgets/post_card.dart';
 import 'package:not_a_writing_app/widgets/progress_card.dart';

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:not_a_writing_app/screens/bottom_screens/book_browser_screen.dart';
-import 'package:not_a_writing_app/screens/bottom_screens/book_detail_screen.dart';
-import 'package:not_a_writing_app/screens/bottom_screens/dashboard_screen.dart';
-import 'package:not_a_writing_app/screens/bottom_screens/profile_screen.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/book_browser_screen.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/book_detail_screen.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/dashboard_screen.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/profile_screen.dart';
 import 'package:not_a_writing_app/widgets/appbar_title.dart';
 
 class BottomNavigationScreen extends StatefulWidget {
