@@ -1,12 +1,20 @@
-import '../entities/auth_entity.dart';
-import '../repositories/auth_repository.dart';
+import 'package:dartz/dartz.dart';
+import 'package:equatable/equatable.dart';
+import 'package:not_a_writing_app/core/error/failures.dart';
+import 'package:not_a_writing_app/core/usecases/app_usecases.dart';
+import 'package:not_a_writing_app/features/auth/domain/repositories/auth_repository.dart';
 
-class GetCurrentUserUseCase {
-  final AuthRepository repository;
+class GetCurrentUserUsecaseParams extends Equatable {
+  const GetCurrentUserUsecaseParams();
+  @override
+  // TODO: implement props
+  List<Object?> get props => [];
+}
 
-  GetCurrentUserUseCase(this.repository);
-
-  Future<AuthEntity?> call() {
-    return repository.getCurrentUser();
+class GetCurrentUserUsecase implements UsecaseWithoutParams{
+  @override
+  Future<Either<Failure, dynamic>> call() {
+    // TODO: implement call
+    throw UnimplementedError();
   }
 }

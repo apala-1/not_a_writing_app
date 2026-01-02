@@ -1,23 +1,32 @@
-abstract class AuthState {}
+import 'package:equatable/equatable.dart';
+import 'package:not_a_writing_app/features/auth/domain/entities/auth_entity.dart';
 
-class AuthInitial extends AuthState {}
+enum AuthStatus { initial, authenticated, unauthenticated, registered, loading, error } 
 
-class AuthLoading extends AuthState {}
+class AuthState extends Equatable{
+  final AuthStatus status;
+  final AuthEntity? authEntity;
+  final String? errorMessage;
 
-class AuthAuthenticated extends AuthState {
-  final String userId;
-  final String email;
-
-  AuthAuthenticated({
-    required this.userId,
-    required this.email,
+  const AuthState({
+    this.status = AuthStatus.initial,
+    this.authEntity,
+    this.errorMessage,
   });
-}
 
-class AuthUnauthenticated extends AuthState {}
+  AuthState copyWith({
+    AuthStatus? status,
+    AuthEntity? authEntity,
+    String? errorMessage,
+  }) {
+    return AuthState(
+      status: status ?? this.status,
+      authEntity: authEntity ?? this.authEntity,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
+  }
 
-class AuthError extends AuthState {
-  final String message;
-
-  AuthError(this.message);
+  @override
+  // TODO: implement props
+  List<Object?> get props => [status, authEntity, errorMessage];
 }

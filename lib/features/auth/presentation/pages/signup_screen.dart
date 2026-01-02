@@ -1,21 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:not_a_writing_app/features/auth/presentation/view_model/auth_viewmodel.dart';
+import 'package:not_a_writing_app/features/auth/domain/entities/auth_entity.dart';
 
-class SignUpPage extends StatefulWidget {
+class SignUpPage extends ConsumerStatefulWidget {
   const SignUpPage({super.key});
 
   @override
-  State<SignUpPage> createState() => _SignUpPageState();
+  ConsumerState<SignUpPage> createState() => _SignUpPageState();
 }
 
-class _SignUpPageState extends State<SignUpPage> {
+class _SignUpPageState extends ConsumerState<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
+
+  // Controllers to capture input
+  final _fullnameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmController = TextEditingController();
 
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
   bool rememberMe = false;
 
   @override
+  void dispose() {
+    _fullnameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authViewmodelProvider);
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: SafeArea(
@@ -41,9 +61,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           'assets/images/pencil.png',
                           height: 100,
                         ),
-
                         const SizedBox(height: 15),
-
                         const Text(
                           "SIGN UP",
                           style: TextStyle(
@@ -52,7 +70,6 @@ class _SignUpPageState extends State<SignUpPage> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-
                         const SizedBox(height: 35),
 
                         Form(
@@ -60,26 +77,44 @@ class _SignUpPageState extends State<SignUpPage> {
                           child: Column(
                             children: [
                               TextFormField(
+                                controller: _fullnameController,
                                 decoration: _inputStyle(
                                   icon: Icons.person,
-                                  label: "full name",
+                                  label: "Full name",
                                 ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return "Full name is required";
+                                  }
+                                  return null;
+                                },
                               ),
                               const SizedBox(height: 20),
 
                               TextFormField(
+                                controller: _emailController,
                                 decoration: _inputStyle(
                                   icon: Icons.email_outlined,
-                                  label: "email",
+                                  label: "Email",
                                 ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return "Email is required";
+                                  }
+                                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                                    return "Enter a valid email";
+                                  }
+                                  return null;
+                                },
                               ),
                               const SizedBox(height: 20),
 
                               TextFormField(
+                                controller: _passwordController,
                                 obscureText: _obscurePassword,
                                 decoration: _inputStyle(
                                   icon: Icons.lock_outline,
-                                  label: "password",
+                                  label: "Password",
                                   suffix: IconButton(
                                     icon: Icon(
                                       _obscurePassword
@@ -88,20 +123,29 @@ class _SignUpPageState extends State<SignUpPage> {
                                     ),
                                     onPressed: () {
                                       setState(() {
-                                        _obscurePassword =
-                                            !_obscurePassword;
+                                        _obscurePassword = !_obscurePassword;
                                       });
                                     },
                                   ),
                                 ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return "Password is required";
+                                  }
+                                  if (value.length < 6) {
+                                    return "Password must be at least 6 characters";
+                                  }
+                                  return null;
+                                },
                               ),
                               const SizedBox(height: 20),
 
                               TextFormField(
+                                controller: _confirmController,
                                 obscureText: _obscureConfirm,
                                 decoration: _inputStyle(
                                   icon: Icons.lock_outline,
-                                  label: "confirm password",
+                                  label: "Confirm password",
                                   suffix: IconButton(
                                     icon: Icon(
                                       _obscureConfirm
@@ -110,12 +154,20 @@ class _SignUpPageState extends State<SignUpPage> {
                                     ),
                                     onPressed: () {
                                       setState(() {
-                                        _obscureConfirm =
-                                            !_obscureConfirm;
+                                        _obscureConfirm = !_obscureConfirm;
                                       });
                                     },
                                   ),
                                 ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return "Confirm your password";
+                                  }
+                                  if (value != _passwordController.text) {
+                                    return "Passwords do not match";
+                                  }
+                                  return null;
+                                },
                               ),
 
                               const SizedBox(height: 10),
@@ -124,8 +176,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 children: [
                                   Checkbox(
                                     value: rememberMe,
-                                    activeColor:
-                                        const Color(0xFFFF7F00),
+                                    activeColor: const Color(0xFFFF7F00),
                                     onChanged: (v) {
                                       setState(() {
                                         rememberMe = v!;
@@ -143,14 +194,21 @@ class _SignUpPageState extends State<SignUpPage> {
                                 height: 50,
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        const Color(0xFFFF7F00),
+                                    backgroundColor: const Color(0xFFFF7F00),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(25),
+                                      borderRadius: BorderRadius.circular(25),
                                     ),
                                   ),
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    if (_formKey.currentState!.validate()) {
+                                      ref.read(authViewmodelProvider.notifier).register(
+                                      fullname: _fullnameController.text.trim(),
+                                      email: _emailController.text.trim(),
+                                      password: _passwordController.text.trim(),
+                                    );
+
+                                    }
+                                  },
                                   child: const Text(
                                     "Sign Up",
                                     style: TextStyle(
@@ -165,8 +223,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
                               GestureDetector(
                                 onTap: () {
-                                  Navigator.pushReplacementNamed(
-                                      context, '/login');
+                                  Navigator.pushReplacementNamed(context, '/login');
                                 },
                                 child: const Text(
                                   "Already have an account? Log In",
@@ -180,8 +237,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               const SizedBox(height: 12),
 
                               Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Image.asset(
                                     'assets/images/google.png',
@@ -220,12 +276,10 @@ class _SignUpPageState extends State<SignUpPage> {
       labelText: label,
       labelStyle: const TextStyle(fontSize: 14),
       enabledBorder: const UnderlineInputBorder(
-        borderSide:
-            BorderSide(color: Color(0xFFFF7F00), width: 1.3),
+        borderSide: BorderSide(color: Color(0xFFFF7F00), width: 1.3),
       ),
       focusedBorder: const UnderlineInputBorder(
-        borderSide:
-            BorderSide(color: Color(0xFFFF7F00), width: 1.8),
+        borderSide: BorderSide(color: Color(0xFFFF7F00), width: 1.8),
       ),
     );
   }

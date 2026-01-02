@@ -1,76 +1,59 @@
-import 'package:flutter/material.dart';
-import '../../domain/usecases/login_usecase.dart';
-import '../../domain/usecases/register_usecase.dart';
-import '../../domain/usecases/logout_usecase.dart';
-import '../../domain/usecases/get_current_user_usecase.dart';
-import '../state/auth_state.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:not_a_writing_app/features/auth/domain/usecases/login_usecase.dart';
+import 'package:not_a_writing_app/features/auth/domain/usecases/register_usecase.dart';
+import 'package:not_a_writing_app/features/auth/presentation/state/auth_state.dart';
 
-class AuthViewModel extends ChangeNotifier {
-  final LoginUseCase loginUseCase;
-  final RegisterUseCase registerUseCase;
-  final LogoutUseCase logoutUseCase;
-  final GetCurrentUserUseCase getCurrentUserUseCase;
+// provider
+final authViewmodelProvider =
+    NotifierProvider<AuthViewmodel, AuthState>(
+      () => AuthViewmodel()
+    );
 
-  AuthState _state = AuthInitial();
-  AuthState get state => _state;
+class AuthViewmodel extends Notifier<AuthState> {
+  late final RegisterUsecase _registerUsecase;
+  late final LoginUsecase _loginUsecase;
 
-  AuthViewModel({
-    required this.loginUseCase,
-    required this.registerUseCase,
-    required this.logoutUseCase,
-    required this.getCurrentUserUseCase,
-  });
-
-  Future<void> login(String email, String password) async {
-    _state = AuthLoading();
-    notifyListeners();
-
-    try {
-      final user = await loginUseCase(email, password);
-      _state = AuthAuthenticated(
-        userId: user.id,
-        email: user.email,
-      );
-    } catch (e) {
-      _state = AuthError("Login failed");
-    }
-
-    notifyListeners();
+  @override
+  AuthState build() {
+    _registerUsecase = ref.read(registerUsecaseProvider);
+    _loginUsecase = ref.read(loginUsecaseProvider);
+    return const AuthState();
   }
 
-  Future<void> register(String name, String email, String password) async {
-    _state = AuthLoading();
-    notifyListeners();
-
-    try {
-      final user = await registerUseCase(name, email, password);
-      _state = AuthAuthenticated(
-        userId: user.id,
-        email: user.email,
-      );
-    } catch (e) {
-      _state = AuthError("Registration failed");
-    }
-
-    notifyListeners();
+  Future<void> register({required String fullname, required String email, required String password}) async {
+    state = state.copyWith(status: AuthStatus.loading);
+    final params = RegisterUsecaseParams(fullname: fullname, email: email, password: password);
+    final result = await _registerUsecase(params);
+    result.fold(
+      (failure) {
+        state = state.copyWith(
+            status: AuthStatus.error, errorMessage: failure.message);
+      },
+      (isRegistered) {
+        if (isRegistered) {
+          state = state.copyWith(status: AuthStatus.registered);
+        } else {
+          state = state.copyWith(
+              status: AuthStatus.error,
+              errorMessage: "Registration failed. Please try again.");
+        }
+      },
+    );
   }
 
-  Future<void> logout() async {
-    await logoutUseCase();
-    _state = AuthUnauthenticated();
-    notifyListeners();
-  }
-
-  Future<void> checkAuthStatus() async {
-    final user = await getCurrentUserUseCase();
-    if (user != null) {
-      _state = AuthAuthenticated(
-        userId: user.id,
-        email: user.email,
-      );
-    } else {
-      _state = AuthUnauthenticated();
-    }
-    notifyListeners();
+  Future<void> login({required String email, required String password}) async {
+    state = state.copyWith(status: AuthStatus.loading);
+    final params = LoginUsecaseParams(email: email, password: password);
+    final result = await _loginUsecase(params);
+    result.fold(
+      (failure) {
+        state = state.copyWith(
+            status: AuthStatus.error, errorMessage: failure.message);
+      },
+      (authEntity) {
+        state = state.copyWith(
+            status: AuthStatus.authenticated, authEntity: authEntity);
+      },
+    );
   }
 }
