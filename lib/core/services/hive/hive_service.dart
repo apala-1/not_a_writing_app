@@ -4,65 +4,60 @@ import 'package:not_a_writing_app/core/constants/hive_table_constant.dart';
 import 'package:not_a_writing_app/features/auth/data/models/auth_hive_model.dart';
 import 'package:path_provider/path_provider.dart';
 
+
 final hiveServiceProvider = Provider<HiveService>((ref) { final service = HiveService(); return service; });
 
 class HiveService {
-  // init
-  Future<void> init() async{
+  Future<void> init() async {
     final directory = await getApplicationDocumentsDirectory();
     final path = '${directory.path}/${HiveTableConstant.dbName}';
     Hive.init(path);
     _registerAdapter();
   }
 
-  // Register Adapters
-  void _registerAdapter(){
-    if(!Hive.isAdapterRegistered(HiveTableConstant.batchTypeId)) {
+  void _registerAdapter() {
+    if (!Hive.isAdapterRegistered(HiveTableConstant.authTypeId)) {
       Hive.registerAdapter(AuthHiveModelAdapter());
     }
   }
 
-  // Open Boxes
   Future<void> openBoxes() async {
     await Hive.openBox<AuthHiveModel>(HiveTableConstant.authTable);
   }
 
-  // Close Boxes
-  Future<void> close() async {
-    await Hive.close();
-  }
-
-  // ====================AUTH QUERIES====================
-
   Box<AuthHiveModel> get _authBox =>
-    Hive.box<AuthHiveModel>(HiveTableConstant.authTable);
+      Hive.box<AuthHiveModel>(HiveTableConstant.authTable);
 
-
-  Future<AuthHiveModel> registerUser(AuthHiveModel model) async {
-    await _authBox.put(model.authId, model);
-    return model;
-  }
-
-  // Login
-  Future<AuthHiveModel?> loginUser(String email, String password) async {
-    final users = _authBox.values.where((user) => user.email == email && user.password == password);
-    if (users.isNotEmpty) {
-      return users.first;
+  Future<bool> registerUser(AuthHiveModel model) async {
+    if (_authBox.containsKey(model.email)) {
+      return false; // duplicate
     }
-    return null;
+    await _authBox.put(model.email, model); // ✅ use email as key
+    return true;
   }
 
-  // logout
-  Future<void> logoutUser() async {
-  final box = Hive.box<AuthHiveModel>('authBox');
-  await box.delete('currentUser');
+  Future<AuthHiveModel?> loginUser(String email, String password) async {
+  final user = _authBox.get(email);
+  if (user != null && user.password == password) {
+    final currentUser = AuthHiveModel(
+      authId: user.authId,
+      fullname: user.fullname,
+      email: user.email,
+      password: user.password,
+    );
+    await _authBox.put('currentUser', currentUser); // fresh copy
+    return user;
+  }
+  return null;
 }
 
 
-  // get current user
-  Future<AuthHiveModel?> getCurrentUser() async {
-  final box = Hive.box<AuthHiveModel>('authBox');
-  return box.get('currentUser'); // or however you store it
+Future<AuthHiveModel?> getCurrentUser() async {
+  return _authBox.get('currentUser'); // ✅ fetch AuthHiveModel
+}
+
+Future<void> logoutUser() async {
+  await _authBox.delete('currentUser');
 }
 
 }

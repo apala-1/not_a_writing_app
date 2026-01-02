@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:not_a_writing_app/core/utils/snackbar_utils.dart';
+import 'package:not_a_writing_app/features/auth/presentation/state/auth_state.dart';
 import 'package:not_a_writing_app/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:not_a_writing_app/features/auth/domain/entities/auth_entity.dart';
 
@@ -35,6 +37,14 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authViewmodelProvider);
+
+    ref.listen(authViewmodelProvider, (previous, next) {
+      if (next.status == AuthStatus.error) {
+        SnackbarUtils.showError(context, next.errorMessage ?? 'Registration failed');
+      }else if (next.status == AuthStatus.registered) {
+        SnackbarUtils.showSuccess(context, 'Registration successful! Please log in.');
+      }
+    });
 
     return Scaffold(
       resizeToAvoidBottomInset: true,

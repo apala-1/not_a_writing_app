@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 import 'package:not_a_writing_app/core/services/hive/hive_service.dart';
 import 'package:not_a_writing_app/features/auth/data/datasources/auth_datasource.dart';
 import 'package:not_a_writing_app/features/auth/data/models/auth_hive_model.dart';
@@ -10,46 +11,28 @@ final authLocalDatasourceProvider = Provider<AuthLocalDatasource>((ref) {
 });
 
 class AuthLocalDatasource implements IAuthDatasource {
-
   final HiveService _hiveService;
-  AuthLocalDatasource({required HiveService hiveService}) : _hiveService = hiveService;
-  @override 
+  AuthLocalDatasource({required HiveService hiveService})
+      : _hiveService = hiveService;
+
+  @override
   Future<AuthHiveModel?> getCurrentUser() async {
-    try { 
-      final user = await _hiveService.getCurrentUser(); 
-      return user; 
-    } catch (e) { 
-      return null; 
-    } 
+    return await _hiveService.getCurrentUser();
   }
 
   @override
   Future<AuthHiveModel?> login(String email, String password) async {
-    try {
-      final user = await _hiveService.loginUser(email, password);
-      return Future.value(user);
-    } catch (e) {
-      return Future.value(null);
-    }
+    return await _hiveService.loginUser(email, password);
   }
 
   @override
-Future<bool> logout() async {
-  try {
+  Future<bool> logout() async {
     await _hiveService.logoutUser();
     return true;
-  } catch (e) {
-    return false;
   }
-}
 
   @override
   Future<bool> register(AuthHiveModel model) async {
-    try {
-      await _hiveService.registerUser(model);
-      return Future.value(true);
-    } catch (e) {
-      return Future.value(false);
-    }
+    return await _hiveService.registerUser(model);
   }
 }
