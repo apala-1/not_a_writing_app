@@ -11,12 +11,15 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
+  final _emailController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: AppColors.background,
+          surfaceTintColor: AppColors.background,
+          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
           title: Row(
             children: [
               GestureDetector(onTap: () => {
@@ -33,7 +36,24 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 children: [
                   Image.asset('assets/images/pencil.png', height: 90),
                   SizedBox(height: 40,),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Forgot Password?", style: TextStyle(
+                      fontSize: 24,
+                      color: AppColors.primaryOrange,
+                      fontWeight: FontWeight.w500
+                    ),),
+                  ),
+                  SizedBox(height: 3,),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Change your password by getting a link in your email.', style: TextStyle(
+                      color: const Color.fromARGB(255, 122, 59, 0)
+                    ),),
+                  ),
+                  SizedBox(height: 20,),
                   TextFormField(
+                    controller: _emailController,
                     decoration: const InputDecoration(
                       icon: Icon(Icons.mail),
                       labelText: 'Enter email',
