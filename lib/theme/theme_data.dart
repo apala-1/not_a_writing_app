@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:not_a_writing_app/theme/colors.dart';
 
 ThemeData getApplicationTheme() {
   return ThemeData(
     fontFamily: 'InriaSans Bold',
     appBarTheme: AppBarTheme(
       centerTitle: true,
-      color: Colors.white,
+      backgroundColor: AppColors.background,
       elevation: 4,
       titleTextStyle: TextStyle(
         color: const Color.fromARGB(255, 52, 30, 30),

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:not_a_writing_app/core/utils/snackbar_utils.dart';
 import 'package:not_a_writing_app/features/auth/presentation/state/auth_state.dart';
 import 'package:not_a_writing_app/features/auth/presentation/view_model/auth_viewmodel.dart';
-import 'package:not_a_writing_app/features/auth/domain/entities/auth_entity.dart';
 
 class SignUpPage extends ConsumerStatefulWidget {
   const SignUpPage({super.key});
@@ -36,7 +35,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authViewmodelProvider);
+    // final authState = ref.watch(authViewmodelProvider);
 
     ref.listen(authViewmodelProvider, (previous, next) {
       if (next.status == AuthStatus.error) {

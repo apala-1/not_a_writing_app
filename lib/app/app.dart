@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:not_a_writing_app/features/auth/presentation/pages/forgot_password_screen.dart';
 import 'package:not_a_writing_app/features/auth/presentation/pages/login_screen.dart';
 import 'package:not_a_writing_app/features/auth/presentation/pages/signup_screen.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_navigation_screen.dart';
@@ -24,6 +25,7 @@ class MyApp extends StatelessWidget {
         '/signup': (context) => const SignUpPage(),
         '/dashboard': (context) => const DashboardScreen(),
         "/bottom_navigation": (context) => const BottomNavigationScreen(),
+        '/forgot_password': (context) => const ForgotPasswordScreen(),
       },
     );
   }

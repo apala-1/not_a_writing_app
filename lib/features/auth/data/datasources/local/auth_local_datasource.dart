@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive/hive.dart';
 import 'package:not_a_writing_app/core/services/hive/hive_service.dart';
 import 'package:not_a_writing_app/features/auth/data/datasources/auth_datasource.dart';
 import 'package:not_a_writing_app/features/auth/data/models/auth_hive_model.dart';

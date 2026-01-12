@@ -14,6 +14,5 @@ class AuthEntity extends Equatable {
   });
   
   @override
-  // TODO: implement props
   List<Object?> get props => [authId, fullname, email, password];
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:not_a_writing_app/theme/colors.dart';
-import '../../app/theme/app_colors.dart';
 
 class SnackbarUtils {
   static void showError(BuildContext context, String message) {

@@ -29,7 +29,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authViewmodelProvider);
+    // final authState = ref.watch(authViewmodelProvider);
 
     // Listen for login success/error
     ref.listen(authViewmodelProvider, (previous, next) {
@@ -165,7 +165,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   ),
                                   TextButton(
                                     onPressed: () {
-                                      // TODO: implement forgot password
+                                      Navigator.pushReplacementNamed(context, '/forgot_password');
                                     },
                                     child: const Text(
                                       "Forgot Password?",
@@ -200,12 +200,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                           );
                                     }
                                   },
-                                  child: const Text(
-                                    "Log In",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      color: Colors.white,
-                                    ),
+                                  child: GestureDetector(
+                                    child: Text('Login', style: TextStyle(
+                                      color: Colors.white
+                                    )),
+                                    onTap: () => {
+                                      Navigator.pushReplacementNamed(context, '/homepage')
+                                    },
                                   ),
                                 ),
                               ),
