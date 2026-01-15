@@ -231,8 +231,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           children: [
                             GestureDetector(
                               onTap: () {
-                                Navigator.pushReplacementNamed(
-                                    context, '/bottom_navigation');
                               },
                               child: Image.asset(
                                 'assets/images/google.png',
