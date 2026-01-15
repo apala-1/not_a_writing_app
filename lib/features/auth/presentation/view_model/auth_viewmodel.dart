@@ -51,7 +51,7 @@ class AuthViewmodel extends Notifier<AuthState> {
         await userSessionService.saveUserSession(
           authId: authEntity.authId,
           email: authEntity.email,
-          fullname: authEntity.name,
+          name: authEntity.name,
         );
 
         state = state.copyWith(
