@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:not_a_writing_app/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/widgets/profile_action_tile.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/widgets/profile_header.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/widgets/profile_stat_card.dart';
 import 'package:not_a_writing_app/theme/colors.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SingleChildScrollView(
@@ -57,7 +59,10 @@ class ProfileScreen extends StatelessWidget {
               title: 'Log Out',
               backgroundColor: AppColors.cardBackground,
               iconColor: Colors.red,
-              onTap: () {},
+              onTap: () {
+                ref.read(authViewmodelProvider.notifier).logout();
+                Navigator.of(context).pushReplacementNamed('/login');
+              },
             ),
           ],
         ),

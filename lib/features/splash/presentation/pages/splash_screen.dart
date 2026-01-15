@@ -1,13 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
 
-class SplashScreen extends StatelessWidget {
-  const SplashScreen({super.key});
+class SplashPage extends ConsumerStatefulWidget {
+  const SplashPage({super.key});
+
+  @override
+  ConsumerState<SplashPage> createState() => _SplashPageState();
+}
+
+class _SplashPageState extends ConsumerState<SplashPage>{
 
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future.delayed(const Duration(seconds: 2), () {
-        if(context.mounted){
+        if(!context.mounted) return;
+        final userSessionService = ref.read(userSessionServiceProvider);
+        final isLoggedIn = userSessionService.isLoggedIn();
+
+        if (isLoggedIn) {
+          Navigator.pushReplacementNamed(context, '/bottom_navigation');
+        } else {
           Navigator.pushReplacementNamed(context, '/onboarding');
         }
       });

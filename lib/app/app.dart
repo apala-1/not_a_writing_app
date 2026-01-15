@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
       theme: getApplicationTheme(),
       initialRoute: '/splash',
       routes: {
-        '/splash': (context) => const SplashScreen(),
+        '/splash': (context) => const SplashPage(),
         '/onboarding': (context) => const OnboardingScreen(),
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignUpPage(),

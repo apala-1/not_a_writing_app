@@ -56,4 +56,11 @@ class AuthViewmodel extends Notifier<AuthState> {
       },
     );
   }
+
+  Future<void> logout() async {
+    state = state.copyWith(status: AuthStatus.loading);
+    // Here you would typically call a logout usecase
+    // For simplicity, we'll just set the state to unauthenticated
+    state = state.copyWith(status: AuthStatus.unauthenticated, authEntity: null);
+  }
 }
