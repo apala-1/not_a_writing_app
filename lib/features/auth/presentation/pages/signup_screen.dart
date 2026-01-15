@@ -20,6 +20,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
+  final _authIdController = TextEditingController();
 
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
@@ -223,7 +224,8 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                                     onPressed: () {
                                       if (_formKey.currentState!.validate()) {
                                         ref.read(authViewmodelProvider.notifier).register(
-                                        fullname: _fullnameController.text.trim(),
+                                        authId: _authIdController.text.trim(),
+                                        name: _fullnameController.text.trim(),
                                         email: _emailController.text.trim(),
                                         password: _passwordController.text.trim(),
                                       );

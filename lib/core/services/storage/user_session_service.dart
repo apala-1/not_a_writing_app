@@ -24,15 +24,17 @@ class UserSessionService {
 
   // Store user session data
   Future<void> saveUserSession({
-    required String userId,
-    required String email,
-    required String fullname,
-  }) async {
-    await _prefs.setBool(_keysIsLoggedIn, true);
-    await _prefs.setString(_keyUserId, userId);
-    await _prefs.setString(_keyUserEmail, email);
-    await _prefs.setString(_keyUserFullname, fullname);
-  }
+  required String? authId,
+  required String email,
+  required String fullname,
+}) async {
+  await _prefs.setBool(_keysIsLoggedIn, true);
+  await _prefs.setString(_keyUserId, authId!);
+  await _prefs.setString(_keyUserEmail, email);
+  await _prefs.setString(_keyUserFullname, fullname);
+}
+
+
 
   // Clear user session data
   Future<void> clearUserSession() async {

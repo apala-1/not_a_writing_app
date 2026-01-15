@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 import 'package:not_a_writing_app/core/services/hive/hive_service.dart';
 import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
 import 'package:not_a_writing_app/features/auth/data/datasources/auth_datasource.dart';
@@ -11,7 +12,7 @@ final authLocalDatasourceProvider = Provider<AuthLocalDatasource>((ref) {
   return AuthLocalDatasource(hiveService: hiveService, userSessionService: userSessionService);
 });
 
-class AuthLocalDatasource implements IAuthDatasource {
+class AuthLocalDatasource implements IAuthLocalDatasource {
   final HiveService _hiveService;
   final UserSessionService _userSessionService;
 
@@ -30,9 +31,9 @@ class AuthLocalDatasource implements IAuthDatasource {
       if (user != null) {
         // Save session data
         await _userSessionService.saveUserSession(
-          userId: user.authId!,
+          authId: user.authId!,
           email: user.email,
-          fullname: user.fullname,
+          fullname: user.name,
         );
       }
       return user;
@@ -48,7 +49,25 @@ class AuthLocalDatasource implements IAuthDatasource {
   }
 
   @override
-  Future<bool> register(AuthHiveModel model) async {
-    return await _hiveService.registerUser(model);
+Future<AuthHiveModel?> getUserByEmail(String email) async {
+  final box = await Hive.openBox<AuthHiveModel>('users');
+  try {
+    return box.values.firstWhere((user) => user.email == email);
+  } catch (e) {
+    return null; // return null if not found
   }
+}
+
+@override
+Future<bool> register(AuthHiveModel user) async {
+  try {
+    final box = await Hive.openBox<AuthHiveModel>('users');
+    await box.put(user.email, user); // store by email as key
+    return true; // <--- must return a bool
+  } catch (e) {
+    return false; // optional: return false if writing fails
+  }
+}
+
+
 }

@@ -41,7 +41,7 @@ class HiveService {
   if (user != null && user.password == password) {
     final currentUser = AuthHiveModel(
       authId: user.authId,
-      fullname: user.fullname,
+      name: user.name,
       email: user.email,
       password: user.password,
     );
