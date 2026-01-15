@@ -205,7 +205,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                       color: Colors.white
                                     )),
                                     onTap: () => {
-                                      Navigator.pushReplacementNamed(context, '/homepage')
+                                      Navigator.pushReplacementNamed(context, '/bottom_navigation')
                                     },
                                   ),
                                 ),
