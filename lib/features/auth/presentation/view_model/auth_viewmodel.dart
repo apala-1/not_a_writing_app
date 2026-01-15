@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
 import 'package:not_a_writing_app/features/auth/domain/usecases/login_usecase.dart';
 import 'package:not_a_writing_app/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:not_a_writing_app/features/auth/domain/usecases/register_usecase.dart';
@@ -19,6 +20,7 @@ class AuthViewmodel extends Notifier<AuthState> {
   AuthState build() {
     _registerUsecase = ref.read(registerUsecaseProvider);
     _loginUsecase = ref.read(loginUsecaseProvider);
+    _logoutUsecase = ref.read(logoutUsecaseProvider);
     return const AuthState();
   }
 
@@ -60,19 +62,27 @@ class AuthViewmodel extends Notifier<AuthState> {
   }
 
   Future<void> logout() async {
-    state = state.copyWith(status: AuthStatus.loading);
+  state = state.copyWith(status: AuthStatus.loading);
 
-    final result = await _logoutUsecase();
+  final result = await _logoutUsecase();
 
-    result.fold(
-      (failure) => state = state.copyWith(
-        status: AuthStatus.error,
-        errorMessage: failure.message,
-      ),
-      (success) => state = state.copyWith(
+  result.fold(
+    (failure) => state = state.copyWith(
+      status: AuthStatus.error,
+      errorMessage: failure.message,
+    ),
+    (success) async {
+      // Clear persisted session
+      final userSessionService = ref.read(userSessionServiceProvider);
+      await userSessionService.clearUserSession();
+
+      // Update state
+      state = state.copyWith(
         status: AuthStatus.unauthenticated,
         authEntity: null,
-      ),
-    );
-  }
+      );
+    },
+  );
+}
+
 }

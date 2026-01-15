@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:not_a_writing_app/features/auth/presentation/pages/login_screen.dart';
 import 'package:not_a_writing_app/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/widgets/profile_action_tile.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/widgets/profile_header.dart';
@@ -59,9 +60,11 @@ class ProfileScreen extends ConsumerWidget {
               title: 'Log Out',
               backgroundColor: AppColors.cardBackground,
               iconColor: Colors.red,
-              onTap: () {
-                ref.read(authViewmodelProvider.notifier).logout();
-                Navigator.of(context).pushReplacementNamed('/login');
+              onTap: () async {
+                await ref.read(authViewmodelProvider.notifier).logout();
+              if (context.mounted) {
+                Navigator.pushReplacementNamed(context, '/login');
+              }
               },
             ),
           ],
