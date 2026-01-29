@@ -33,28 +33,28 @@ class AuthRemoteDatasource implements IAuthRemoteDatasource {
     throw UnimplementedError();
   }
 
-  @override
-  Future<AuthApiModel?> login(String email, String password) async {
-    final response = await _apiClient.post(
-      ApiEndpoints.userLogin,
-      data: {
-        'email': email,
-        'password': password,
-      },
-    );
+   @override
+Future<AuthApiModel?> login(String email, String password) async {
+  final response = await _apiClient.post(
+    ApiEndpoints.userLogin,
+    data: {
+      'email': email,
+      'password': password,
+    },
+  );
 
-    if (response.data['success'] == true) {
-      final data = response.data['data'] as Map<String, dynamic>;
-      final token = data['token'];
-      print("Token: $token");
-      final user = AuthApiModel.fromJson(data);
-      
-      // Save to session
-      await _userSessionService.saveUserSession(authId: (user.authId), email: user.email, name: user.name, token: (user.token));
-      return user;
-    }
-    return null;
+   if (response.data['success'] == true) {
+    final data = response.data['data'] as Map<String, dynamic>;
+    final token = response.data['token'] as String?;
+
+    if (token == null) throw Exception("Login response missing token");
+
+    final user = AuthApiModel.fromJson({...data, 'token': token});
+    return user; // just return the ApiModel
   }
+
+  return null;
+}
 
   @override
   Future<bool> logout() {

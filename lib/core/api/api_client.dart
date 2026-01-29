@@ -4,17 +4,19 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:not_a_writing_app/core/api/api_endpoints.dart';
+import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 // Provider for ApiClient
 final apiClientProvider = Provider<ApiClient>((ref) {
-  return ApiClient();
+  final userSessionService = ref.read(userSessionServiceProvider);
+  return ApiClient(userSessionService);
 });
 
 class ApiClient {
   late final Dio _dio;
 
-  ApiClient() {
+  ApiClient(UserSessionService userSessionService) {
     _dio = Dio(
       BaseOptions(
         baseUrl: ApiEndpoints.baseUrl,
@@ -28,7 +30,7 @@ class ApiClient {
     );
 
     // Add interceptors
-    _dio.interceptors.add(_AuthInterceptor());
+    _dio.interceptors.add(_AuthInterceptor(userSessionService));
 
     // Auto retry on network failures
     _dio.interceptors.add(
@@ -139,9 +141,9 @@ class ApiClient {
 
 // Auth Interceptor to add JWT token to requests
 class _AuthInterceptor extends Interceptor {
-  final _storage = const FlutterSecureStorage();
-  static const String _tokenKey = 'auth_token';
+  final UserSessionService _userSessionService;
 
+  _AuthInterceptor(this._userSessionService);
   @override
   void onRequest(
     RequestOptions options,
@@ -160,9 +162,9 @@ class _AuthInterceptor extends Interceptor {
         options.path == ApiEndpoints.userLogin ||
         options.path == ApiEndpoints.users;
 
-    if (!isPublicGet && !isAuthEndpoint) {
-      final token = await _storage.read(key: _tokenKey);
-      if (token != null) {
+    if (!isAuthEndpoint) {
+      final token = await _userSessionService.getUserToken();
+      if (token != null && token.isNotEmpty) {
         options.headers['Authorization'] = 'Bearer $token';
       }
     }
@@ -175,7 +177,7 @@ class _AuthInterceptor extends Interceptor {
     // Handle 401 Unauthorized - token expired
     if (err.response?.statusCode == 401) {
       // Clear token and redirect to login
-      _storage.delete(key: _tokenKey);
+      _userSessionService.clearUserSession();
       // You can add navigation logic here or use a callback
     }
     handler.next(err);

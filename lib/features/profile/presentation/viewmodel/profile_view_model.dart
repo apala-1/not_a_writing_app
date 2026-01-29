@@ -21,4 +21,25 @@ class ProfileViewmodel extends Notifier<ProfileState> {
     // _uploadImageUsecase = ref.read(uploadImageUsecaseProvider);
     return const ProfileState();
   }
+
+   Future<void> fetchProfile() async {
+    state = state.copyWith(status: ProfileStatus.loading);
+
+    final result = await _getProfileUsecase(''); // pass userId if needed
+
+    result.fold(
+      (failure) {
+        state = state.copyWith(
+          status: ProfileStatus.error,
+          errorMessage: failure.message,
+        );
+      },
+      (profile) {
+        state = state.copyWith(
+          status: ProfileStatus.loaded,
+          profileEntity: profile,
+        );
+      },
+    );
+  }
 }

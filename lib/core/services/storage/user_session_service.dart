@@ -25,10 +25,10 @@ class UserSessionService {
 
   // Store user session data
   Future<void> saveUserSession({
-  required String? authId,
+  required String authId,
   required String email,
   required String name,
-  String? token,
+  required String token,
 }) async {
   await _prefs.setBool(_keysIsLoggedIn, true);
   await _prefs.setString(_keyUserId, authId!);
