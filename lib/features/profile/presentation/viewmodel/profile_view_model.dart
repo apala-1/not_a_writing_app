@@ -42,4 +42,34 @@ class ProfileViewmodel extends Notifier<ProfileState> {
       },
     );
   }
+
+  Future<void> updateProfile(UpdateProfileParams params) async {
+  state = state.copyWith(status: ProfileStatus.loading);
+
+  final result = await _updateProfileUsecase(params);
+
+  result.fold(
+    (failure) {
+      state = state.copyWith(
+        status: ProfileStatus.error,
+        errorMessage: failure.message,
+      );
+    },
+    (profile) {
+      state = state.copyWith(
+        status: ProfileStatus.loaded,
+        profileEntity: profile,
+      );
+    },
+  );
+}
+
+Future<void> pickProfileImage() async {
+  final picker = ImagePicker();
+  final image = await picker.pickImage(source: ImageSource.gallery);
+
+  if (image != null) {
+    state = state.copyWith(pickedImage: image);
+  }
+}
 }

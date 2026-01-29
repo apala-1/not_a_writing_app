@@ -29,8 +29,14 @@ class ProfileRepository implements IProfileRepository {
   }
   
   @override
-  Future<Either<Failure, ProfileEntity>> updateUser(UpdateProfileParams params) {
-    // TODO: implement updateUser
-    throw UnimplementedError();
+Future<Either<Failure, ProfileEntity>> updateUser(
+  UpdateProfileParams params,
+) async {
+  try {
+    final apiModel = await remote.updateProfile(params);
+    return Right(apiModel.toEntity());
+  } catch (e) {
+    return Left(ApiFailure(message: e.toString()));
   }
+}
 }

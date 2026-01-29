@@ -2,13 +2,14 @@ import 'dart:convert';
 
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
-import 'package:http/http.dart';
+import 'package:http/http.dart' hide MultipartFile;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:not_a_writing_app/core/api/api_client.dart';
 import 'package:not_a_writing_app/core/api/api_endpoints.dart';
 import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
 import 'package:not_a_writing_app/features/profile/data/datasources/profile_datasource.dart';
 import 'package:not_a_writing_app/features/profile/data/models/profile_api_model.dart';
+import 'package:not_a_writing_app/features/profile/domain/usecases/update_user_usecase.dart';
 
 /// Provider
 final profileRemoteProvider = Provider<IProfileRemoteDatasource>((ref) {
@@ -49,10 +50,51 @@ class ProfileRemoteDatasource implements IProfileRemoteDatasource {
   }
 
   @override
-  Future<ProfileApiModel> updateProfile(ProfileApiModel model) {
-    // TODO: implement updateProfile
-    throw UnimplementedError();
+Future<ProfileApiModel> updateProfile(UpdateProfileParams params) async {
+  final formData = FormData();
+
+  if (params.name != null) {
+    formData.fields.add(MapEntry('name', params.name!));
   }
+  if (params.email != null) {
+    formData.fields.add(MapEntry('email', params.email!));
+  }
+  if (params.password != null) {
+    formData.fields.add(MapEntry('password', params.password!));
+  }
+  if (params.bio != null) {
+    formData.fields.add(MapEntry('bio', params.bio!));
+  }
+  if (params.occupation != null) {
+    formData.fields.add(MapEntry('occupation', params.occupation!));
+  }
+
+  if (params.profilePicture != null) {
+    formData.files.add(
+      MapEntry(
+        'profilePicture',
+        await MultipartFile.fromFile(params.profilePicture!),
+      ),
+    );
+  }
+
+  final response = await _apiClient.put(
+    '${ApiEndpoints.users}/${params.userId}',
+    data: formData,
+    options: Options(
+      headers: {
+        'Authorization': 'Bearer ${params.token}',
+        'Content-Type': 'multipart/form-data',
+      },
+    ),
+  );
+
+  if (response.statusCode == 200) {
+    return ProfileApiModel.fromJson(response.data['data']);
+  } else {
+    throw Exception('Profile update failed');
+  }
+}
 
   @override
   Future<String> uploadProfilePicture(XFile image) {
