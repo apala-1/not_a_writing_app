@@ -79,9 +79,18 @@ class AuthViewmodel extends Notifier<AuthState> {
           errorMessage: failure.message,
         );
       },
-      (authEntity) {
+      (authEntity) async {
+        // Save session
+        final userSessionService = ref.read(userSessionServiceProvider);
+        await userSessionService.saveUserSession(
+          authId: authEntity.authId,
+          email: authEntity.email,
+          name: authEntity.name,
+          token: authEntity.token,
+        );
+
         state = state.copyWith(
-          status: AuthStatus.authenticated,
+          status: AuthStatus.registered,
           authEntity: authEntity,
         );
       },

@@ -34,6 +34,7 @@ class AuthLocalDatasource implements IAuthLocalDatasource {
           authId: user.authId!,
           email: user.email,
           name: user.name,
+          token: user.token!,
         );
       }
       return user;

@@ -5,11 +5,12 @@ class AuthApiModel {
   final String name;
   final String email;
   final String? password;
+  final String? token;
 
   AuthApiModel({
     required this.name,
     required this.email,
-    this.password, this.authId,
+    this.password, this.authId, this.token,
   });
 
   // to JSON
@@ -30,7 +31,7 @@ class AuthApiModel {
     authId: json['_id'] ?? json['id'] ?? json['authId'],
     name: json['name'],
     email: json['email'],
-    password: json['password'], // usually null on response (fine)
+    password: json['password'], token: json['token'], // usually null on response (fine)
   );
 }
 

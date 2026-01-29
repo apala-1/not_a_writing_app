@@ -16,11 +16,13 @@ class AuthHiveModel extends HiveObject {
   final String email;
   @HiveField(3)
   final String? password;
+  @HiveField(4)
+  final String? token;
 
   AuthHiveModel({
     required this.name,
     required this.email,
-    this.password, this.authId
+    this.password, this.authId, this.token
   });
 
   // From Entity
@@ -30,6 +32,7 @@ class AuthHiveModel extends HiveObject {
       name: entity.name,
       email: entity.email,
       password: entity.password,
+      token: entity.token,
     );
   }
 
@@ -40,6 +43,7 @@ class AuthHiveModel extends HiveObject {
       name: name,
       email: email,
       password: password,
+      token: token!,
     );
   }
 
