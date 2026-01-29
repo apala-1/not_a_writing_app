@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cross_file/src/types/interface.dart';
 import 'package:dio/dio.dart';
 import 'package:http/http.dart';
@@ -32,7 +34,15 @@ class ProfileRemoteDatasource implements IProfileRemoteDatasource {
   Future<ProfileApiModel> fetchProfile() async {
     final token = await _userSessionService.getUserToken();
 
-    final response = await client.get();
+    final response = await _apiClient.get(
+      ApiEndpoints.userMe,
+    );
+
+    if(response.statusCode == 200) {
+      return ProfileApiModel.fromJSON(jsonDecode(response.data['data']));
+    } else {
+      throw Exception("Failed to fetch profile");
+    }
   }
 
   @override

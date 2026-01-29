@@ -50,4 +50,31 @@ class ProfileApiModel extends ProfileEntity {
   );
 }
 
+ /// Convert API model to domain entity
+  ProfileEntity toEntity() {
+    return ProfileEntity(
+      id: id,
+      name: name,
+      email: email,
+      profilePicture: profilePicture,
+      occupation: occupation,
+      bio: bio,
+      token: token,
+    );
+  }
+
+  /// Convert domain entity back to API model
+  factory ProfileApiModel.fromEntity(ProfileEntity entity) {
+    return ProfileApiModel(
+      id: entity.id,
+      name: entity.name,
+      email: entity.email,
+      profilePicture: entity.profilePicture,
+      occupation: entity.occupation,
+      bio: entity.bio,
+      token: entity.token,
+    );
+  }
+
+
 }
