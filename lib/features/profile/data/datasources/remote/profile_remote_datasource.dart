@@ -1,5 +1,6 @@
 import 'package:cross_file/src/types/interface.dart';
 import 'package:dio/dio.dart';
+import 'package:http/http.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:not_a_writing_app/core/api/api_client.dart';
 import 'package:not_a_writing_app/core/api/api_endpoints.dart';
@@ -28,9 +29,10 @@ class ProfileRemoteDatasource implements IProfileRemoteDatasource {
         _userSessionService = userSessionService;
 
   @override
-  Future<ProfileApiModel> fetchProfile() {
-    // TODO: implement fetchProfile
-    throw UnimplementedError();
+  Future<ProfileApiModel> fetchProfile() async {
+    final token = await _userSessionService.getUserToken();
+
+    final response = await client.get();
   }
 
   @override
