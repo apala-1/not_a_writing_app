@@ -62,7 +62,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   backgroundImage: (profile?.profilePicture != null &&
           profile!.profilePicture.isNotEmpty &&
           profile.profilePicture != 'default-picture.png')
-      ? NetworkImage('${ApiEndpoints.userUpload}/${profile.profilePicture}')
+      ? NetworkImage('${ApiEndpoints.mediaServerUrl}/${profile.profilePicture}')
       : AssetImage('assets/images/google.png') as ImageProvider,
   child: (profile?.profilePicture == null ||
           profile!.profilePicture.isEmpty ||
