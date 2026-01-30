@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:not_a_writing_app/core/api/api_endpoints.dart';
 import 'package:not_a_writing_app/features/profile/domain/usecases/update_user_usecase.dart';
 import 'package:not_a_writing_app/features/profile/presentation/viewmodel/profile_view_model.dart';
 
@@ -50,7 +51,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   backgroundImage: state.pickedImage != null
                       ? FileImage(File(state.pickedImage!.path))
                       : NetworkImage(
-                          state.profileEntity!.profilePicture,
+                           '${ApiEndpoints.mediaServerUrl}/${state.profileEntity!.profilePicture}',
                         ) as ImageProvider,
                 ),
                 Positioned(
@@ -93,6 +94,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     occupation: occupationCtrl.text,
                     password: passwordCtrl.text.isEmpty ? null : passwordCtrl.text,
                     profilePicture: state.pickedImage?.path,
+                    pickedNewImage: true,
                     token: state.profileEntity!.token,
                   ),
                 );

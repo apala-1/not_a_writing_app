@@ -69,7 +69,7 @@ Future<ProfileApiModel> updateProfile(UpdateProfileParams params) async {
     formData.fields.add(MapEntry('occupation', params.occupation!));
   }
 
-  if (params.profilePicture != null) {
+  if (params.profilePicture != null && params.pickedNewImage == true) {
     formData.files.add(
       MapEntry(
         'profilePicture',

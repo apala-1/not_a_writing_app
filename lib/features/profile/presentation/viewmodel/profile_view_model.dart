@@ -43,10 +43,15 @@ class ProfileViewmodel extends Notifier<ProfileState> {
     );
   }
 
-  Future<void> updateProfile(UpdateProfileParams params) async {
+ Future<void> updateProfile(UpdateProfileParams params) async {
   state = state.copyWith(status: ProfileStatus.loading);
 
-  final result = await _updateProfileUsecase(params);
+  final finalParams = params.copyWith(
+    profilePicture: state.pickedImage?.path,
+    pickedNewImage: state.pickedImage != null,
+  );
+
+  final result = await _updateProfileUsecase(finalParams);
 
   result.fold(
     (failure) {
@@ -55,14 +60,19 @@ class ProfileViewmodel extends Notifier<ProfileState> {
         errorMessage: failure.message,
       );
     },
-    (profile) {
+    (profile) async {
       state = state.copyWith(
-        status: ProfileStatus.loaded,
         profileEntity: profile,
+        pickedImage: null, 
+        status: ProfileStatus.loaded,
       );
+
+      // optional but recommended
+      await fetchProfile();
     },
   );
 }
+
 
 Future<void> pickProfileImage() async {
   final picker = ImagePicker();

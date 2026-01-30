@@ -19,15 +19,16 @@ class UpdateProfileParams {
   final String? bio;
   final String? profilePicture;
   final String? token;
+  bool? pickedNewImage;
 
-  const UpdateProfileParams({
+  UpdateProfileParams({
     required this.userId,
     this.name,
     this.email,
     this.password,
     this.occupation,
     this.bio,
-    this.profilePicture, this.token,
+    this.profilePicture, this.token, this.pickedNewImage = false,       
   });
 
   /// Convenience method to convert to JSON if needed
@@ -41,6 +42,7 @@ class UpdateProfileParams {
       'bio': bio,
       'profilePicture': profilePicture,
       'token': token,
+      'pickedNewImage': pickedNewImage,
     };
   }
 
@@ -54,6 +56,7 @@ class UpdateProfileParams {
     String? bio,
     String? profilePicture,
     String? token,
+    bool? pickedNewImage,
   }) {
     return UpdateProfileParams(
       userId: userId ?? this.userId,
@@ -64,6 +67,7 @@ class UpdateProfileParams {
       bio: bio ?? this.bio,
       profilePicture: profilePicture ?? this.profilePicture,
       token: token ?? this.token,
+      pickedNewImage: pickedNewImage ?? this.pickedNewImage,
     );
   }
 }
