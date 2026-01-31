@@ -5,11 +5,12 @@ class AuthApiModel {
   final String name;
   final String email;
   final String? password;
+  final String? token;
 
   AuthApiModel({
     required this.name,
     required this.email,
-    this.password, this.authId,
+    this.password, this.authId, this.token,
   });
 
   // to JSON
@@ -25,12 +26,12 @@ class AuthApiModel {
   }
 
   // from JSON
-  factory AuthApiModel.fromJson(Map<String, dynamic> json) {
+factory AuthApiModel.fromJson(Map<String, dynamic> json) {
   return AuthApiModel(
-    authId: json['_id'] ?? json['id'] ?? json['authId'],
-    name: json['name'],
-    email: json['email'],
-    password: json['password'], // usually null on response (fine)
+    authId: json['_id'],       // directly from json
+    name: json['name'] ?? '',
+    email: json['email'] ?? '',
+    token: json['token'],
   );
 }
 
@@ -41,6 +42,7 @@ class AuthApiModel {
       authId: authId,
       name: name,
       email: email,
+      token: token,
     );
   }
 

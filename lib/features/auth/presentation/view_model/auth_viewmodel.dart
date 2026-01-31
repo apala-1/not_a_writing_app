@@ -46,14 +46,6 @@ class AuthViewmodel extends Notifier<AuthState> {
         );
       },
       (authEntity) async {
-        // Save session
-        final userSessionService = ref.read(userSessionServiceProvider);
-        await userSessionService.saveUserSession(
-          authId: authEntity.authId,
-          email: authEntity.email,
-          name: authEntity.name,
-        );
-
         state = state.copyWith(
           status: AuthStatus.registered,
           authEntity: authEntity,
@@ -79,12 +71,32 @@ class AuthViewmodel extends Notifier<AuthState> {
           errorMessage: failure.message,
         );
       },
-      (authEntity) {
-        state = state.copyWith(
-          status: AuthStatus.authenticated,
-          authEntity: authEntity,
-        );
-      },
+      (authEntity) async {
+  // DEBUG: check what you got
+  print('authId: "${authEntity.authId}", token: "${authEntity.token}"');
+
+  final userSessionService = ref.read(userSessionServiceProvider);
+
+  // check for empty strings too
+  if (authEntity.authId == null || authEntity.authId!.isEmpty ||
+      authEntity.token == null || authEntity.token!.isEmpty) {
+    throw Exception('Login response missing required fields');
+  }
+
+  await userSessionService.saveUserSession(
+    authId: authEntity.authId!,
+    email: authEntity.email,
+    name: authEntity.name,
+    token: authEntity.token!,
+  );
+
+  print('Saved session: ${await userSessionService.getUserToken()}');
+
+  state = state.copyWith(
+    status: AuthStatus.authenticated,
+    authEntity: authEntity,
+  );
+},
     );
   }
 

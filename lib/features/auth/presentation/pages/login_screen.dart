@@ -48,6 +48,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
+                key: const Key('login_scroll'),
               padding: EdgeInsets.only(
                 left: 24,
                 right: 24,
@@ -200,14 +201,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                           );
                                     }
                                   },
-                                  child: GestureDetector(
-                                    child: Text('Login', style: TextStyle(
-                                      color: Colors.white
-                                    )),
-                                    onTap: () => {
-                                      Navigator.pushReplacementNamed(context, '/bottom_navigation')
-                                    },
-                                  ),
+                                  child: Text('Login', style: TextStyle(
+                                    color: Colors.white
+                                  )),
                                 ),
                               ),
                             ],
