@@ -51,7 +51,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   backgroundImage: state.pickedImage != null
                       ? FileImage(File(state.pickedImage!.path))
                       : NetworkImage(
-                           '${ApiEndpoints.mediaServerUrl}/${state.profileEntity!.profilePicture}',
+                           '${ApiEndpoints.media(state.profileEntity!.profilePicture)}?t=${DateTime.now().millisecondsSinceEpoch}',
                         ) as ImageProvider,
                 ),
                 Positioned(
