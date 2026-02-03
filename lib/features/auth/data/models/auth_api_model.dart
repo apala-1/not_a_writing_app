@@ -6,11 +6,12 @@ class AuthApiModel {
   final String email;
   final String? password;
   final String? token;
+  final String? profilePicture;
 
   AuthApiModel({
     required this.name,
     required this.email,
-    this.password, this.authId, this.token,
+    this.password, this.authId, this.token, this.profilePicture,
   });
 
   // to JSON
@@ -42,6 +43,7 @@ factory AuthApiModel.fromJson(Map<String, dynamic> json) {
     name: user['name'] ?? '',
     email: user['email'] ?? '',
     token: data['token'],
+    profilePicture: user['profilePicture'],
   );
 }
 
