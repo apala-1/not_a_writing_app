@@ -27,13 +27,24 @@ class AuthApiModel {
 
   // from JSON
 factory AuthApiModel.fromJson(Map<String, dynamic> json) {
+  final data = json['data'];
+  if (data == null) {
+    throw Exception('Auth response missing data');
+  }
+
+  final user = data['user'];
+  if (user == null) {
+    throw Exception('Auth response missing user');
+  }
+
   return AuthApiModel(
-    authId: json['_id'],       // directly from json
-    name: json['name'] ?? '',
-    email: json['email'] ?? '',
-    token: json['token'],
+    authId: user['_id'],
+    name: user['name'] ?? '',
+    email: user['email'] ?? '',
+    token: data['token'],
   );
 }
+
 
 
   // to Entity

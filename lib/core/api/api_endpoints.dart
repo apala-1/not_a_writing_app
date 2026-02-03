@@ -7,7 +7,7 @@ class ApiEndpoints {
 
   // Configuration
   // static const bool isPhysicalDevice = false;
-  static const String _ipAddress = "10.215.51.66";
+  static const String _ipAddress = "10.231.98.66";
   static const int _port = 3000;
 
   // Base URLs
@@ -24,15 +24,26 @@ class ApiEndpoints {
   static String get baseUrl => '$serverUrl/api/v1';
   static String get mediaServerUrl => serverUrl;
 
+    // ===== AUTH (USER) =====
+  static const String auth = '/auth';
+
+  static const String register = '$auth/register';
+  static const String login = '$auth/login';
+
+  static const String me = '$auth/me';
+  static const String updateMe = '$auth/me';
+  static const String deleteMe = '$auth/me';
+
+  // ===== ADMIN USERS =====
+  static const String users = '/users';
+
+  static String userById(String id) => '/users/$id';
+
+  // ===== MEDIA =====
+  static String media(String filename) => '$serverUrl/uploads/$filename';
+
+  // ===== TIMEOUTS =====
   static const Duration connectionTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
-
-  // ============ user Endpoints ============
-  static const String users = '/users';
-  static const String userLogin = '/users/login';
-  static String userById(String id) => '/users/$id';
-  static String userPhoto(String id) => '/users/$id/photo';
-  static const String userMe = '/users/me';
-  static const String userUpload = 'users/upload';
 
 }

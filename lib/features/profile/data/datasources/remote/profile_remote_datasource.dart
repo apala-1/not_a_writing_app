@@ -37,7 +37,7 @@ class ProfileRemoteDatasource implements IProfileRemoteDatasource {
     if (token == null) throw Exception("No token found");
 
     final response = await _apiClient.get(
-      ApiEndpoints.userMe,
+      ApiEndpoints.me,
     );
 
     if (response.statusCode == 200) {
@@ -79,7 +79,7 @@ Future<ProfileApiModel> updateProfile(UpdateProfileParams params) async {
   }
 
   final response = await _apiClient.put(
-    '${ApiEndpoints.users}/${params.userId}',
+    '${ApiEndpoints.me}',
     data: formData,
     options: Options(
       headers: {

@@ -36,7 +36,7 @@ class AuthRemoteDatasource implements IAuthRemoteDatasource {
    @override
 Future<AuthApiModel?> login(String email, String password) async {
   final response = await _apiClient.post(
-    ApiEndpoints.userLogin,
+    ApiEndpoints.login,
     data: {
       'email': email,
       'password': password,
@@ -44,12 +44,7 @@ Future<AuthApiModel?> login(String email, String password) async {
   );
 
    if (response.data['success'] == true) {
-    final data = response.data['data'] as Map<String, dynamic>;
-    final token = response.data['token'] as String?;
-
-    if (token == null) throw Exception("Login response missing token");
-
-    final user = AuthApiModel.fromJson({...data, 'token': token});
+    final user = AuthApiModel.fromJson(response.data);
     return user; // just return the ApiModel
   }
 
