@@ -6,6 +6,8 @@ import 'package:not_a_writing_app/core/constants/hive_table_constant.dart';
 import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
 import 'package:not_a_writing_app/features/auth/data/models/auth_hive_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:url_strategy/url_strategy.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +23,7 @@ Future<void> main() async {
 
   // Shared Pref object
   final sharedPrefs = await SharedPreferences.getInstance();
-
+  setPathUrlStrategy();
   runApp(ProviderScope(
     overrides: [
       sharedPreferencesProvider.overrideWithValue(sharedPrefs),

@@ -41,6 +41,18 @@ class FakeAuthViewModel extends StateNotifier<AuthState> implements AuthViewmode
   Ref get ref => throw UnimplementedError();
   @override
   AuthState? get stateOrNull => state;
+  
+  @override
+  Future<void> forgotPassword(String email) {
+    // TODO: implement forgotPassword
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> resetPassword({required String token, required String password}) {
+    // TODO: implement resetPassword
+    throw UnimplementedError();
+  }
 }
 
 Widget createTestApp(FakeAuthViewModel fakeVm) {

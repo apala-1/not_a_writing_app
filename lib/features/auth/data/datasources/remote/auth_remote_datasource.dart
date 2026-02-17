@@ -83,4 +83,31 @@ Future<AuthApiModel> register(AuthApiModel user) async {
     // TODO: implement getUserByEmail
     throw UnimplementedError();
   }
+  
+  @override
+Future<void> forgotPassword(String email) async {
+  final response = await _apiClient.post(
+    ApiEndpoints.forgotPassword,
+    data: {'email': email},
+  );
+
+  if (response.data['success'] != true) {
+    throw Exception(response.data['message']);
+  }
+}
+
+@override
+Future<void> resetPassword(String token, String password) async {
+  final response = await _apiClient.post(
+    ApiEndpoints.resetPassword,
+    data: {
+      'token': token,
+      'password': password,
+    },
+  );
+
+  if (response.data['success'] != true) {
+    throw Exception(response.data['message']);
+  }
+}
 }

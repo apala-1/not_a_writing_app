@@ -15,4 +15,6 @@ abstract interface class IAuthRemoteDatasource {
   Future<AuthApiModel?> getCurrentUser();
   Future<AuthHiveModel?> getUserByEmail(String email);
   Future<bool> logout();
+  Future<void> forgotPassword(String email);
+  Future<void> resetPassword(String token, String password);
 }

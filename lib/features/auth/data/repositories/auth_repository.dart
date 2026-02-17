@@ -160,4 +160,44 @@ Future<Either<Failure, AuthEntity>> register(AuthEntity user) async {
       return Left(LocalDatabaseFailure(message: e.toString()));
     }
   }
+  
+  @override
+  Future<Either<Failure, bool>> forgotPassword(String email) async {
+    if (await _networkInfo.isConnected) {
+    try {
+      await _authRemoteDataSource.forgotPassword(email);
+      return const Right(true);
+    } on DioException catch (e) {
+      return Left(
+        ApiFailure(
+          message: e.response?.data['message'] ?? 'Failed to send reset link',
+          statusCode: e.response?.statusCode,
+        ),
+      );
+    } catch (e) {
+      return Left(ApiFailure(message: e.toString()));
+    }
+  }
+  return const Left(ApiFailure(message: "No internet connection"));
+  }
+  
+  @override
+  Future<Either<Failure, bool>> resetPassword(String token, String password) async {
+    if (await _networkInfo.isConnected) {
+    try {
+      await _authRemoteDataSource.resetPassword(token, password);
+      return const Right(true);
+    } on DioException catch (e) {
+      return Left(
+        ApiFailure(
+          message: e.response?.data['message'] ?? 'Reset failed',
+          statusCode: e.response?.statusCode,
+        ),
+      );
+    } catch (e) {
+      return Left(ApiFailure(message: e.toString()));
+    }
+  }
+  return const Left(ApiFailure(message: "No internet connection"));
+  }
 }

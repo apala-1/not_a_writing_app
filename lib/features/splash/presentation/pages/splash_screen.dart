@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
+import 'package:not_a_writing_app/features/auth/presentation/pages/reset_password_screen.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
@@ -14,18 +15,33 @@ class _SplashPageState extends ConsumerState<SplashPage>{
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(seconds: 2), () {
-        if(!context.mounted) return;
-        final userSessionService = ref.read(userSessionServiceProvider);
-        final isLoggedIn = userSessionService.isLoggedIn();
+  final uri = Uri.base;
+  final resetToken = uri.queryParameters['token'];
 
-        if (isLoggedIn) {
-          Navigator.pushReplacementNamed(context, '/bottom_navigation');
-        } else {
-          Navigator.pushReplacementNamed(context, '/onboarding');
-        }
-      });
-    });
+  if (resetToken != null && resetToken.isNotEmpty) {
+    // go straight to reset-password, skip the delay
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ResetPasswordScreen(token: resetToken),
+      ),
+    );
+    return;
+  }
+
+  // Otherwise, do normal splash delay
+  Future.delayed(const Duration(seconds: 2), () {
+    if (!context.mounted) return;
+    final userSessionService = ref.read(userSessionServiceProvider);
+    final isLoggedIn = userSessionService.isLoggedIn();
+    if (isLoggedIn) {
+      Navigator.pushReplacementNamed(context, '/bottom_navigation');
+    } else {
+      Navigator.pushReplacementNamed(context, '/onboarding');
+    }
+  });
+});
+
 
     return Scaffold(
       body: SafeArea(
