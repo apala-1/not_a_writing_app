@@ -19,7 +19,7 @@ class ProfileRepository implements IProfileRepository {
   ProfileRepository(this.remote);
 
   @override
-  Future<Either<Failure, ProfileEntity>> getProfile(String userId) async {
+  Future<Either<Failure, ProfileEntity>> getProfile() async {
     try {
       final profile = await remote.fetchProfile();
       return Right(profile);
@@ -27,6 +27,16 @@ class ProfileRepository implements IProfileRepository {
       return Left(ApiFailure(message: e.toString()));
     }
   }
+
+  @override
+Future<Either<Failure, ProfileEntity>> getProfileById(String userId) async {
+  try {
+    final profile = await remote.fetchProfileById(userId);
+    return Right(profile.toEntity());
+  } catch (e) {
+    return Left(ApiFailure(message: e.toString()));
+  }
+}
   
   @override
 Future<Either<Failure, ProfileEntity>> updateUser(

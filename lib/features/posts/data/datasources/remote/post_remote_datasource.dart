@@ -4,29 +4,8 @@ import 'package:mime/mime.dart';
 import 'package:http/http.dart' as http;
 import 'package:not_a_writing_app/core/api/api_endpoints.dart';
 import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
+import 'package:not_a_writing_app/features/posts/data/datasources/post_datasource.dart';
 import 'package:not_a_writing_app/features/posts/domain/entities/post_entity.dart';
-
-abstract class IPostRemoteDatasource {
-  Future<Post> createPost({
-    required String title,
-    required String description,
-    required String content,
-    required bool isDraft,
-    List<File>? attachments,
-  });
-
-  Future<Post> updatePost({
-    required String postId,
-    String? title,
-    String? description,
-    String? content,
-    bool? isDraft,
-    List<File>? attachments,
-  });
-
-  Future<void> addShare(String postId);
-  Future<void> addView(String postId);
-}
 
 class PostRemoteDatasource implements IPostRemoteDatasource {
   final UserSessionService _userSessionService;
@@ -37,7 +16,7 @@ class PostRemoteDatasource implements IPostRemoteDatasource {
   Future<String> _getToken() async => await _userSessionService.getUserToken() ?? '';
 
   @override
-  Future<Post> createPost({
+  Future<PostEntity> createPost({
     required String title,
     required String description,
     required String content,
@@ -80,7 +59,7 @@ class PostRemoteDatasource implements IPostRemoteDatasource {
   }
 
   @override
-  Future<Post> updatePost({
+  Future<PostEntity> updatePost({
     required String postId,
     String? title,
     String? description,
@@ -115,6 +94,137 @@ class PostRemoteDatasource implements IPostRemoteDatasource {
   }
 
   @override
+Future<List<PostEntity>> getAllPosts({
+  int skip = 0,
+  int limit = 10,
+}) async {
+  final uri = Uri.parse(
+    '${ApiEndpoints.baseUrl}${ApiEndpoints.getAllPosts()}?skip=$skip&limit=$limit',
+  );
+
+  final res = await http.get(
+    uri,
+    headers: {'Authorization': 'Bearer ${await _getToken()}'},
+  );
+
+  if (res.statusCode != 200) {
+    throw Exception('Failed to fetch posts: ${res.body}');
+  }
+
+  final data = jsonDecode(res.body)['data'] as List;
+  return data.map((json) => _mapJsonToPost(json)).toList();
+}
+
+@override
+Future<List<PostEntity>> getDrafts() async {
+  final uri = Uri.parse(
+    '${ApiEndpoints.baseUrl}${ApiEndpoints.getDrafts()}',
+  );
+
+  final res = await http.get(
+    uri,
+    headers: {'Authorization': 'Bearer ${await _getToken()}'},
+  );
+
+  if (res.statusCode != 200) {
+    throw Exception('Failed to fetch drafts: ${res.body}');
+  }
+
+  final data = jsonDecode(res.body)['data'] as List;
+  return data.map((json) => _mapJsonToPost(json)).toList();
+}
+
+@override
+Future<List<PostEntity>> getFeed({
+  String? lastCreatedAt,
+  int limit = 10,
+}) async {
+  final uri = Uri.parse(
+    '${ApiEndpoints.baseUrl}${ApiEndpoints.getFeed()}'
+    '?limit=$limit'
+    '${lastCreatedAt != null ? '&lastCreatedAt=$lastCreatedAt' : ''}',
+  );
+
+  final res = await http.get(
+    uri,
+    headers: {'Authorization': 'Bearer ${await _getToken()}'},
+  );
+
+  if (res.statusCode != 200) {
+    throw Exception('Failed to fetch feed: ${res.body}');
+  }
+
+  final data = jsonDecode(res.body)['data'] as List;
+  return data.map((json) => _mapJsonToPost(json)).toList();
+}
+
+@override
+Future<List<PostEntity>> getRankedFeed({
+  int skip = 0,
+  int limit = 10,
+}) async {
+  final uri = Uri.parse(
+    '${ApiEndpoints.baseUrl}${ApiEndpoints.rankedFeed}?skip=$skip&limit=$limit',
+  );
+
+  final res = await http.get(
+    uri,
+    headers: {'Authorization': 'Bearer ${await _getToken()}'},
+  );
+
+  if (res.statusCode != 200) {
+    throw Exception('Failed to fetch ranked feed: ${res.body}');
+  }
+
+  final data = jsonDecode(res.body)['data'] as List;
+  return data.map((json) => _mapJsonToPost(json)).toList();
+}
+
+@override
+Future<PostEntity> getPostById(String postId) async {
+  final uri = Uri.parse(
+    '${ApiEndpoints.baseUrl}${ApiEndpoints.getPostById(postId)}',
+  );
+
+  final res = await http.get(
+    uri,
+    headers: {'Authorization': 'Bearer ${await _getToken()}'},
+  );
+
+  if (res.statusCode != 200) {
+    throw Exception('Failed to fetch post: ${res.body}');
+  }
+
+  final data = jsonDecode(res.body)['data'];
+  return _mapJsonToPost(data);
+}
+
+@override
+Future<void> toggleLike(String postId) async {
+  final res = await http.post(
+    Uri.parse('${ApiEndpoints.baseUrl}${ApiEndpoints.toggleLike(postId)}'),
+    headers: {'Authorization': 'Bearer ${await _getToken()}'},
+  );
+
+  if (res.statusCode != 200) {
+    throw Exception('Failed to toggle like');
+  }
+}
+
+@override
+Future<void> toggleSave(String postId) async {
+  final res = await http.post(
+    Uri.parse('${ApiEndpoints.baseUrl}${ApiEndpoints.toggleSave(postId)}'),
+    headers: {'Authorization': 'Bearer ${await _getToken()}'},
+  );
+
+  if (res.statusCode != 200) {
+    throw Exception('Failed to toggle save');
+  }
+}
+
+
+  @override
   Future<void> addShare(String postId) async {
     final res = await http.post(
       Uri.parse('${ApiEndpoints.baseUrl}${ApiEndpoints.addShare(postId)}'),
@@ -132,8 +242,8 @@ class PostRemoteDatasource implements IPostRemoteDatasource {
     if (res.statusCode != 200) throw Exception('Failed to add view');
   }
 
-  Post _mapJsonToPost(Map<String, dynamic> json) {
-    return Post(
+  PostEntity _mapJsonToPost(Map<String, dynamic> json) {
+    return PostEntity(
       id: json['_id'],
       title: json['title'],
       description: json['description'],

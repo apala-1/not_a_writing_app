@@ -49,6 +49,25 @@ class ProfileRemoteDatasource implements IProfileRemoteDatasource {
   }
   }
 
+  Future<ProfileApiModel> fetchProfileById(String userId) async {
+  final token = await _userSessionService.getUserToken();
+  if (token == null) throw Exception("No token found");
+
+  final response = await _apiClient.get(
+    ApiEndpoints.getProfile(userId),
+    options: Options(
+      headers: {'Authorization': 'Bearer $token'},
+    ),
+  );
+
+  if (response.statusCode == 200) {
+    final profileData = response.data['data'] as Map<String, dynamic>;
+    return ProfileApiModel.fromJson(profileData);
+  } else {
+    throw Exception("Failed to fetch profile by ID");
+  }
+}
+
   @override
 Future<ProfileApiModel> updateProfile(UpdateProfileParams params) async {
   final formData = FormData();

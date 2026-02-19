@@ -15,4 +15,6 @@ abstract interface class IProfileRemoteDatasource{
   Future<ProfileApiModel> updateProfile(UpdateProfileParams params);
   Future<String> uploadProfilePicture(XFile image);
   // Future<void> updatePassword()
+    Future<ProfileApiModel> fetchProfileById(String userId);
+
 }

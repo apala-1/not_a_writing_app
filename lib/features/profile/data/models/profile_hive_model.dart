@@ -23,14 +23,18 @@ class ProfileHiveModel extends HiveObject {
   @HiveField(5)
   String occupation;
 
+  @HiveField(6)
+  int postsCount;
+
   ProfileHiveModel({
     required this.id,
     required this.name,
     required this.email,
     required this.profilePicture,
     required this.bio,
+    required this.postsCount,
     required this.occupation,
   });
 
-  ProfileEntity toEntity() => ProfileEntity(id: id, name: name, email: email, profilePicture: profilePicture, occupation: occupation, bio: bio);
+  ProfileEntity toEntity() => ProfileEntity(id: id, name: name, email: email, profilePicture: profilePicture, occupation: occupation, bio: bio, postsCount: postsCount);
 }

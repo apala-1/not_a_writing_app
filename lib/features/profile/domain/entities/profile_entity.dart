@@ -7,7 +7,9 @@ class ProfileEntity extends Equatable {
   final String profilePicture;
   final String occupation;
   final String bio;
+  final int postsCount;
   final String? token;
+
 
   const ProfileEntity({
     required this.id,
@@ -16,7 +18,7 @@ class ProfileEntity extends Equatable {
     required this.profilePicture,
     required this.occupation,
     required this.bio,
-    this.token,
+    this.token, required this.postsCount,
   });
 
   // Add this factory
@@ -28,10 +30,10 @@ class ProfileEntity extends Equatable {
       profilePicture: json['profilePicture'] ?? '',
       occupation: json['occupation'] ?? '',
       bio: json['bio'] ?? '',
-      token: json['token'], // optional, might be null
+      token: json['token'], postsCount: json['postsCount'] ?? 0, // optional, might be null
     );
   }
 
   @override
-  List<Object?> get props => [name, email, profilePicture, occupation, bio, token];
+  List<Object?> get props => [name, email, profilePicture, occupation, bio, token, postsCount];
 }

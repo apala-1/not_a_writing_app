@@ -5,17 +5,17 @@ import 'package:not_a_writing_app/features/profile/data/repositories/profile_rep
 import 'package:not_a_writing_app/features/profile/domain/entities/profile_entity.dart';
 import 'package:not_a_writing_app/features/profile/domain/repositories/profile_repository.dart';
 
-final getProfileUsecaseProvider = Provider<GetProfileUsecase>((ref) {
+final getProfileByIdUsecaseProvider = Provider<GetProfileByIdUsecase>((ref) {
   final repository = ref.read(profileRepositoryProvider);
-  return GetProfileUsecase(repository);
+  return GetProfileByIdUsecase(repository);
 });
 
-class GetProfileUsecase {
+class GetProfileByIdUsecase {
   final IProfileRepository repository;
 
-  GetProfileUsecase(this.repository);
+  GetProfileByIdUsecase(this.repository);
 
   Future<Either<Failure, ProfileEntity>> call(String userId) {
-    return repository.getProfile();
+    return repository.getProfileById(userId);
   }
 }

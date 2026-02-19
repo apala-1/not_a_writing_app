@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 class ProfileStatCard extends StatelessWidget {
   final String label;
-  final String value;
+  final String? value;
 
   const ProfileStatCard({
     super.key,
     required this.label,
-    required this.value,
+    this.value,
   });
 
   @override
@@ -20,7 +20,7 @@ class ProfileStatCard extends StatelessWidget {
           child: Column(
             children: [
               Text(
-                value,
+                value ?? '0',
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

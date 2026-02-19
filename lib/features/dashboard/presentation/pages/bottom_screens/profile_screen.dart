@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:not_a_writing_app/core/api/api_endpoints.dart';
+import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
 import 'package:not_a_writing_app/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:not_a_writing_app/features/auth/presentation/widgets/profile_action_tile.dart';
 import 'package:not_a_writing_app/features/auth/presentation/widgets/profile_stat_card.dart';
@@ -20,7 +21,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      ref.read(profileViewmodelProvider.notifier).fetchProfile();
+          final userSession = ref.read(userSessionServiceProvider);
+          final userId = userSession.getUserId();
+      ref.read(profileViewmodelProvider.notifier).fetchFullProfile(userId!);
     });
   }
 
@@ -47,6 +50,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       BuildContext context, ProfileState profileState) {
     final profile = profileState.profileEntity;
 
+    
+  debugPrint("Profile Posts Count: ${profile?.postsCount}");
+  debugPrint("Profile name: ${profile?.name}");
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -62,11 +69,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   backgroundImage: (profile?.profilePicture != null &&
           profile!.profilePicture.isNotEmpty &&
           profile.profilePicture != 'default-picture.png')
-      ? NetworkImage('${ApiEndpoints.media(profile.profilePicture)}')
+      ? NetworkImage('${ApiEndpoints.mediaServerUrl}/uploads/${profile.profilePicture}')
       : AssetImage('assets/images/google.png') as ImageProvider,
   child: (profile?.profilePicture == null ||
           profile!.profilePicture.isEmpty ||
-          profile.profilePicture == 'default-picture.png')
+          profile.profilePicture == 'onb_1.jpg')
       ? const Icon(Icons.person, size: 48)
       : null,
 ),
@@ -106,8 +113,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           /// STATS
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              ProfileStatCard(label: 'Posts', value: '12'),
+            children: [
+              ProfileStatCard(label: 'Posts', value: profile?.postsCount.toString()),
               ProfileStatCard(label: 'Streak', value: '4 🔥'),
               ProfileStatCard(label: 'Reads', value: '9'),
             ],

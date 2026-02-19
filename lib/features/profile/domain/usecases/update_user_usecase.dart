@@ -19,6 +19,7 @@ class UpdateProfileParams {
   final String? bio;
   final String? profilePicture;
   final String? token;
+  final int? postsCount;
   bool? pickedNewImage;
 
   UpdateProfileParams({
@@ -28,7 +29,7 @@ class UpdateProfileParams {
     this.password,
     this.occupation,
     this.bio,
-    this.profilePicture, this.token, this.pickedNewImage = false,       
+    this.profilePicture, this.token, this.pickedNewImage = false, this.postsCount,       
   });
 
   /// Convenience method to convert to JSON if needed
@@ -42,6 +43,7 @@ class UpdateProfileParams {
       'bio': bio,
       'profilePicture': profilePicture,
       'token': token,
+      'postsCount': postsCount,
       'pickedNewImage': pickedNewImage,
     };
   }
@@ -56,6 +58,7 @@ class UpdateProfileParams {
     String? bio,
     String? profilePicture,
     String? token,
+    int? postsCount,
     bool? pickedNewImage,
   }) {
     return UpdateProfileParams(
@@ -67,6 +70,7 @@ class UpdateProfileParams {
       bio: bio ?? this.bio,
       profilePicture: profilePicture ?? this.profilePicture,
       token: token ?? this.token,
+      postsCount: postsCount ?? this.postsCount,
       pickedNewImage: pickedNewImage ?? this.pickedNewImage,
     );
   }

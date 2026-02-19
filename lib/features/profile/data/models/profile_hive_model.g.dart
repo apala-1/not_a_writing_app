@@ -22,7 +22,7 @@ class ProfileHiveModelAdapter extends TypeAdapter<ProfileHiveModel> {
       email: fields[2] as String,
       profilePicture: fields[3] as String,
       bio: fields[4] as String,
-      occupation: fields[5] as String,
+      occupation: fields[5] as String, postsCount: fields[6] as int,
     );
   }
 

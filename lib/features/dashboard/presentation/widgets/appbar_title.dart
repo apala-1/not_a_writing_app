@@ -33,13 +33,16 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
           const SizedBox(width: 8),
 
-          // App name
-          const Text(
-            'Not A Writing App',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
+          // App name with flexible space
+          Expanded(
+            child: Text(
+              'Not A Writing App',
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+              overflow: TextOverflow.ellipsis, // Shrink text with "..." if needed
             ),
           ),
         ],

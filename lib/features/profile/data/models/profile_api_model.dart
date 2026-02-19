@@ -2,19 +2,7 @@ import 'package:not_a_writing_app/features/profile/domain/entities/profile_entit
 import 'package:not_a_writing_app/features/profile/domain/usecases/update_user_usecase.dart';
 
 class ProfileApiModel extends ProfileEntity {
-  ProfileApiModel({required super.id, required super.name, required super.email, required super.profilePicture, required super.occupation, required super.bio, super.token});
-
-  factory ProfileApiModel.fromJSON(Map<String, dynamic> json) {
-    return ProfileApiModel(
-      id: json['_id'],
-      name: json['name'],
-      email: json['email'],
-      profilePicture: json['profilePicture'] ?? 'default-picture.png',
-      occupation: json['occupation'] ?? '',
-      bio: json['bio'] ?? '',
-      token: json['token'],
-      );
-  }
+  ProfileApiModel({required super.id, required super.name, required super.email, required super.profilePicture, required super.occupation, required super.bio, super.token, required super.postsCount});
 
   Map<String, dynamic> toJson({String? password}) {
     return {
@@ -25,6 +13,7 @@ class ProfileApiModel extends ProfileEntity {
       "bio": bio,
       if(password != null) "password": password,
       "token": token,
+      "postsCount": postsCount,
     };
   }
 
@@ -35,7 +24,7 @@ class ProfileApiModel extends ProfileEntity {
       email: json['email'],
       profilePicture: json['profilePicture'] ?? 'default-picture.png',
       occupation: json['occupation'] ?? '',
-      bio: json['bio'] ?? '', token: json['token'],
+      bio: json['bio'] ?? '', token: json['token'], postsCount: json['postsCount'] ?? 0,
     );
   }
 
@@ -46,7 +35,7 @@ class ProfileApiModel extends ProfileEntity {
     email: params.email ?? '',
     profilePicture: params.profilePicture ?? 'default-picture.png',
     occupation: params.occupation ?? '',
-    bio: params.bio ?? '', token: params.token!,
+    bio: params.bio ?? '', token: params.token!, postsCount: params.postsCount ?? 0,
   );
 }
 
@@ -59,7 +48,7 @@ class ProfileApiModel extends ProfileEntity {
       profilePicture: profilePicture,
       occupation: occupation,
       bio: bio,
-      token: token,
+      token: token, postsCount: postsCount,
     );
   }
 
@@ -73,6 +62,7 @@ class ProfileApiModel extends ProfileEntity {
       occupation: entity.occupation,
       bio: entity.bio,
       token: entity.token,
+      postsCount: entity.postsCount,
     );
   }
 

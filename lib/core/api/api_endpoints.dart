@@ -7,7 +7,7 @@ class ApiEndpoints {
 
   // Configuration
   // static const bool isPhysicalDevice = false;
-  static const String _ipAddress = "10.141.234.66";
+  static const String _ipAddress = "10.168.87.66";
   static const int _port = 3000;
 
   // Base URLs
@@ -43,36 +43,62 @@ static const String resetPassword = '$auth/reset-password';
   static String userById(String id) => '/users/$id';
 
   // ===== MEDIA =====
-  static String media(String filename) => '$serverUrl/uploads/$filename';
+  // static String media(String filename) => '$serverUrl/uploads/$filename';
 
   // ===== POSTS =====
-  static const String posts = '/post';
+static const String posts = '/post';
+
+// GET /post
 static String getAllPosts() => posts;
 
-// GET /posts/drafts
-static String drafts = '$posts/drafts';
+// GET /post/drafts
+static String getDrafts() => '$posts/drafts';
 
-// GET /posts/:id
+// GET /post/feed
+static String getFeed() => '$posts/feed';
+
+// GET /post/:id
 static String getPostById(String id) => '$posts/$id';
 
-// POST /posts
+// POST /post
 static String createPost() => posts;
 
-// PUT /posts/:id
+// PUT /post/:id
 static String updatePost(String id) => '$posts/$id';
 
-// DELETE /posts/:id
+// DELETE /post/:id
 static String deletePost(String id) => '$posts/$id';
 
-static String toggleLike(String postId) => '/posts/toggle-like/$postId';
+// POST /post/toggle-like/:postId
+static String toggleLike(String postId) => '$posts/toggle-like/$postId';
 
-static String toggleSave(String postId) => '/posts/toggle-save/$postId';
+// POST /post/toggle-save/:postId
+static String toggleSave(String postId) => '$posts/toggle-save/$postId';
 
-static String addView(String postId) => '/posts/$postId/view';
+// POST /post/:id/view
+static String addView(String postId) => '$posts/$postId/view';
 
-static String addShare(String postId) => '/posts/$postId/share';
+// POST /post/:id/share
+static String addShare(String postId) => '$posts/$postId/share';
 
-static String rankedFeed(String userId) => '/posts/ranked-feed/$userId';
+// GET /post/ranked-feed/:userId
+static String rankedFeed(String userId) => '$posts/ranked-feed/$userId';
+
+// ===== PROFILE =====
+static const String profile = '/profile';
+
+// GET /profile/:id
+static String getProfile(String id) => '$profile/$id';
+
+// POST /profile/follow
+static String follow() => '$profile/follow';
+
+// POST /profile/unfollow
+static String unfollow() => '$profile/unfollow';
+
+// POST /profile/post-action
+static String postAction() => '$profile/post-action';
+
 
   // ===== TIMEOUTS =====
   static const Duration connectionTimeout = Duration(seconds: 30);

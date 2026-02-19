@@ -7,6 +7,7 @@ import 'package:not_a_writing_app/features/posts/data/datasources/remote/post_re
 import 'package:not_a_writing_app/features/posts/data/repositories/post_repository.dart';
 import 'package:not_a_writing_app/features/posts/domain/entities/post_entity.dart';
 import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
+import 'package:not_a_writing_app/features/posts/domain/repositories/post_repository.dart';
 import 'package:not_a_writing_app/theme/colors.dart';
 
 // Provider for PostRemoteDatasource
@@ -16,7 +17,7 @@ final postRemoteDatasourceProvider = Provider<PostRemoteDatasource>((ref) {
 });
 
 // Provider for PostRepository
-final postRepositoryProvider = Provider<PostRepositoryImpl>((ref) {
+final postRepositoryProvider = Provider<IPostRepository>((ref) {
   final remote = ref.read(postRemoteDatasourceProvider);
   return PostRepositoryImpl(remoteDatasource: remote);
 });
