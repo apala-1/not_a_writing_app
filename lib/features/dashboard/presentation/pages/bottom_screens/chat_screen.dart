@@ -1,6 +1,7 @@
 // lib/features/chat/presentation/pages/chat_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/view_model/chat_viewmodel.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
@@ -22,14 +23,19 @@ class ChatScreen extends ConsumerStatefulWidget {
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    // Use ref.read() to call VM
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(chatViewModelProvider.notifier).loadMessages(widget.myId, widget.receiverId);
-    });
-  }
+ @override
+void initState() {
+  super.initState();
+
+  final userService = ref.read(userSessionServiceProvider);
+  final token = userService.getUserToken() ?? '';
+
+  // Delay until after the first frame
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    ref.read(chatViewModelProvider.notifier)
+       .initialize(widget.myId, widget.receiverId);
+  });
+}
 
   @override
   Widget build(BuildContext context) {

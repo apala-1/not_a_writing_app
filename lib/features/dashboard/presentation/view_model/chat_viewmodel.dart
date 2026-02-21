@@ -1,54 +1,65 @@
-// lib/features/chat/presentation/viewmodel/chat_viewmodel.dart
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:not_a_writing_app/features/dashboard/data/repositories/chat_repository.dart';
-import '../../domain/entities/chat_entity.dart';
+import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
+import 'package:not_a_writing_app/features/dashboard/data/datasources/remote/chat_remote_datasource.dart';
+import 'package:not_a_writing_app/features/dashboard/domain/entities/chat_entity.dart';
+import 'package:not_a_writing_app/features/dashboard/domain/repositories/chat_repository_impl.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/state/chat_state.dart';
+import 'package:uuid/uuid.dart';
 
-// State class
-class ChatState {
-  final List<ChatEntity> messages;
-  final bool loading;
+final chatViewModelProvider =
+    StateNotifierProvider<ChatViewModel, ChatState>((ref) {
+  final repo = ChatRepositoryImpl(ref.read(chatRemoteDataSourceProvider));
+  final token = ref.read(userSessionServiceProvider).getUserToken() ?? '';
+  return ChatViewModel(repo, token);
+});
 
-  ChatState({required this.messages, required this.loading});
-
-  ChatState copyWith({List<ChatEntity>? messages, bool? loading}) {
-    return ChatState(
-      messages: messages ?? this.messages,
-      loading: loading ?? this.loading,
-    );
-  }
-}
-
-// ChatViewModel now extends StateNotifier
 class ChatViewModel extends StateNotifier<ChatState> {
-  final ChatRepository repository;
+  final ChatRepositoryImpl repo;
+  final String token;
+  StreamSubscription<ChatEntity>? _sub;
 
-  ChatViewModel(this.repository) : super(ChatState(messages: [], loading: false));
+  ChatViewModel(this.repo, this.token) : super(ChatState(messages: [], loading: false));
 
-  Future<void> loadMessages(String myId, String receiverId) async {
+  Future<void> initialize(String myId, String receiverId) async {
+    // Connect socket
+    await repo.connect(myId, token);
+
+    // Fetch history
     state = state.copyWith(loading: true);
-    final msgs = await repository.getMessages(myId, receiverId);
-    state = state.copyWith(messages: msgs, loading: false);
+    final history = await repo.getMessages(myId, receiverId, token);
+    state = state.copyWith(messages: history, loading: false);
+
+    // Listen for new messages
+    _sub = repo.onMessageReceived().listen((message) {
+      state = state.copyWith(messages: [...state.messages, message]);
+    });
   }
 
-  Future<void> sendMessage(String sender, String receiver, String message) async {
-    // Optimistic update
-    final temp = ChatEntity(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+  void sendMessage(String sender, String receiver, String message) async {
+    final newMessage = ChatEntity(
+      id: const Uuid().v4(),
       sender: sender,
       receiver: receiver,
       message: message,
       createdAt: DateTime.now(),
-      read: false,
     );
-    state = state.copyWith(messages: [...state.messages, temp]);
 
-    await repository.sendMessage(sender, receiver, message);
+    // Optimistic UI update
+    state = state.copyWith(messages: [...state.messages, newMessage]);
+
+    try {
+      await repo.sendMessage(sender, receiver, message, token);
+    } catch (e) {
+      print('Error sending message: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    repo.disconnect();
+    super.dispose();
   }
 }
-
-// PROVIDER
-final chatViewModelProvider = StateNotifierProvider<ChatViewModel, ChatState>((ref) {
-  final repository = ref.read(chatRepositoryProvider);
-  return ChatViewModel(repository);
-});
