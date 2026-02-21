@@ -18,19 +18,22 @@ class ProfileEntity extends Equatable {
     required this.profilePicture,
     required this.occupation,
     required this.bio,
-    this.token, required this.postsCount,
+    required this.postsCount,
+    this.token,
   });
 
   // Add this factory
   factory ProfileEntity.fromJson(Map<String, dynamic> json) {
     return ProfileEntity(
-      id: json['_id'] ?? '',
+      id: json['_id'] ?? json['userId'] ?? '',
       name: json['name'] ?? '',
       email: json['email'] ?? '',
       profilePicture: json['profilePicture'] ?? '',
       occupation: json['occupation'] ?? '',
       bio: json['bio'] ?? '',
-      token: json['token'], postsCount: json['postsCount'] ?? 0, // optional, might be null
+      token: json['token'], postsCount: (json['postsCount'] is int)
+    ? json['postsCount']
+    : int.tryParse(json['postsCount'].toString()) ?? 0,
     );
   }
 

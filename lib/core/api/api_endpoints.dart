@@ -88,7 +88,7 @@ static String rankedFeed(String userId) => '$posts/ranked-feed/$userId';
 static const String profile = '/profile';
 
 // GET /profile/:id
-static String getProfile(String id) => '$profile/$id';
+static String getProfile(String id) => '$profile/profile/$id';
 
 // POST /profile/follow
 static String follow() => '$profile/follow';
@@ -98,6 +98,24 @@ static String unfollow() => '$profile/unfollow';
 
 // POST /profile/post-action
 static String postAction() => '$profile/post-action';
+
+// ===== COMMENTS =====
+static const String comments = '/comments';
+
+// GET /comments/post/:postId
+static String getCommentsByPost(String postId) =>
+    '$comments/post/$postId';
+
+// POST /comments
+static String createComment() => comments;
+
+// PATCH /comments/:id
+static String updateComment(String commentId) =>
+    '$comments/$commentId';
+
+// DELETE /comments/:id
+static String deleteComment(String commentId) =>
+    '$comments/$commentId';
 
 
   // ===== TIMEOUTS =====

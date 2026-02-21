@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:not_a_writing_app/core/api/api_endpoints.dart';
+import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
+import 'package:not_a_writing_app/features/dashboard/domain/entities/comment_entity.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/view_model/dashboard_viewmodel.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/widgets/comments_sheet.dart';
 import 'package:not_a_writing_app/features/posts/domain/entities/post_entity.dart';
 import 'package:not_a_writing_app/features/posts/presentation/pages/write_create_screen.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/widgets/post_card.dart';
@@ -28,6 +31,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     _scrollController.addListener(_scrollListener);
   }
 
+  @override
+void dispose() {
+  _scrollController.dispose();
+  super.dispose();
+}
+
   void _scrollListener() {
     if(_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
       ref.read(dashboardViewModelProvider.notifier).fetchPosts();
@@ -46,6 +55,7 @@ final postsAsync = dashboardState.posts;
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
+          controller: _scrollController,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,7 +264,13 @@ class _PostCard extends ConsumerWidget {
                 _ActionButton(
                   icon: Icons.comment,
                   label: post.commentsCount.toString(),
-                  onTap: () {}, // TODO: Navigate to post comments
+                  onTap: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (_) => CommentsSheet(postId: post.id),);
+                  },
+                  
                 ),
                 _ActionButton(
                   icon: Icons.share,

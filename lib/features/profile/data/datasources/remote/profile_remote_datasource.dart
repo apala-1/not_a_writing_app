@@ -49,8 +49,9 @@ class ProfileRemoteDatasource implements IProfileRemoteDatasource {
   }
   }
 
+  @override
   Future<ProfileApiModel> fetchProfileById(String userId) async {
-  final token = await _userSessionService.getUserToken();
+  final token = _userSessionService.getUserToken();
   if (token == null) throw Exception("No token found");
 
   final response = await _apiClient.get(

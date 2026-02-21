@@ -103,47 +103,22 @@ Future<void> fetchFullProfile(String userId) async {
   state = state.copyWith(status: ProfileStatus.loading);
 
   try {
-    // 1. Get the actual user info
-    final meResult = await _getProfileUsecase(''); // /auth/me
-    final profileByIdResult = await _getProfileByIdUsecase(userId); // /profile/:id
+    final profileResult = await _getProfileByIdUsecase(userId);
 
-    ProfileEntity? me;
-    ProfileEntity? profileById;
-
-    meResult.fold(
-      (_) => me = null,
-      (profile) => me = profile,
-    );
-
-    profileByIdResult.fold(
-      (_) => profileById = null,
-      (profile) => profileById = profile,
-    );
-
-    if (me == null && profileById == null) {
-      state = state.copyWith(
-        status: ProfileStatus.error,
-        errorMessage: 'Failed to fetch profile',
-      );
-      return;
-    }
-
-    // 2. Merge
-    final mergedProfile = ProfileEntity(
-  id: profileById?.id ?? me!.id,
-  name: me?.name ?? profileById?.name ?? '',
-  email: me?.email ?? profileById?.email ?? '',
-  profilePicture: me?.profilePicture ?? profileById?.profilePicture ?? 'default-picture.png',
-  occupation: me?.occupation ?? profileById?.occupation ?? '',
-  bio: me?.bio ?? profileById?.bio ?? '',
-  token: me?.token,
-  postsCount: profileById?.postsCount ?? 0,
-);
-
-
-    state = state.copyWith(
-      status: ProfileStatus.loaded,
-      profileEntity: mergedProfile,
+    profileResult.fold(
+      (failure) {
+        state = state.copyWith(
+          status: ProfileStatus.error,
+          errorMessage: failure.message,
+        );
+      },
+      (profile) {
+        state = state.copyWith(
+          status: ProfileStatus.loaded,
+          profileEntity: profile,
+        );
+        print('Profile Posts Count: ${profile.postsCount}');
+      },
     );
   } catch (e) {
     state = state.copyWith(
@@ -152,7 +127,6 @@ Future<void> fetchFullProfile(String userId) async {
     );
   }
 }
-
 
 Future<void> pickProfileImage() async {
   final picker = ImagePicker();

@@ -8,10 +8,6 @@ import 'package:not_a_writing_app/features/profile/data/datasources/remote/profi
 import 'package:not_a_writing_app/features/profile/data/models/profile_api_model.dart';
 import 'package:not_a_writing_app/features/profile/domain/usecases/update_user_usecase.dart';
 
-final profileRepositoryProvider = Provider<IProfileRepository>((ref) {
-  final remote = ref.read(profileRemoteProvider);
-  return ProfileRepository(remote);
-});
 
 class ProfileRepository implements IProfileRepository {
   final IProfileRemoteDatasource remote;
@@ -22,7 +18,7 @@ class ProfileRepository implements IProfileRepository {
   Future<Either<Failure, ProfileEntity>> getProfile() async {
     try {
       final profile = await remote.fetchProfile();
-      return Right(profile);
+      return Right(profile.toEntity());
     } catch (e) {
       return Left(ApiFailure(message: e.toString()));
     }
@@ -32,6 +28,7 @@ class ProfileRepository implements IProfileRepository {
 Future<Either<Failure, ProfileEntity>> getProfileById(String userId) async {
   try {
     final profile = await remote.fetchProfileById(userId);
+    print('Raw profile fetched: ${profile.toJson()}');
     return Right(profile.toEntity());
   } catch (e) {
     return Left(ApiFailure(message: e.toString()));

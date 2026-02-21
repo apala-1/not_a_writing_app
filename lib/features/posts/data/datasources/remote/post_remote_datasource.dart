@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:not_a_writing_app/core/api/api_endpoints.dart';
 import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
 import 'package:not_a_writing_app/features/posts/data/datasources/post_datasource.dart';
+import 'package:not_a_writing_app/features/posts/data/models/post_api_model.dart';
 import 'package:not_a_writing_app/features/posts/domain/entities/post_entity.dart';
 
 class PostRemoteDatasource implements IPostRemoteDatasource {
@@ -13,7 +14,7 @@ class PostRemoteDatasource implements IPostRemoteDatasource {
   PostRemoteDatasource({required UserSessionService userSessionService})
       : _userSessionService = userSessionService;
 
-  Future<String> _getToken() async => await _userSessionService.getUserToken() ?? '';
+  Future<String> _getToken() async => _userSessionService.getUserToken() ?? '';
 
   @override
   Future<PostEntity> createPost({
@@ -35,7 +36,7 @@ class PostRemoteDatasource implements IPostRemoteDatasource {
     if (attachments != null) {
   for (var file in attachments) {
     final mimeType = lookupMimeType(file.path) ?? 'application/octet-stream';
-    final parts = mimeType.split('/'); // e.g., ['image', 'jpeg']
+    final parts = mimeType.split('/');
 
     request.files.add(
       await http.MultipartFile.fromPath(
@@ -55,7 +56,7 @@ class PostRemoteDatasource implements IPostRemoteDatasource {
     }
 
     final data = jsonDecode(response.body)['data'];
-    return _mapJsonToPost(data);
+    return PostApiModel.fromJson(data).toEntity();
   }
 
   @override
@@ -90,7 +91,7 @@ class PostRemoteDatasource implements IPostRemoteDatasource {
     }
 
     final data = jsonDecode(response.body)['data'];
-    return _mapJsonToPost(data);
+    return PostApiModel.fromJson(data).toEntity();
   }
 
   @override
@@ -243,20 +244,7 @@ Future<void> toggleSave(String postId) async {
   }
 
   PostEntity _mapJsonToPost(Map<String, dynamic> json) {
-    return PostEntity(
-      id: json['_id'],
-      title: json['title'],
-      description: json['description'],
-      content: json['content'],
-      isDraft: json['status'] == 'draft',
-      attachments: (json['attachments'] as List? ?? [])
-          .map((a) => Attachment(url: a['url'], type: a['type']))
-          .toList(),
-      viewsCount: json['viewsCount'] ?? 0,
-      likesCount: json['likesCount'] ?? 0,
-      sharesCount: json['sharesCount'] ?? 0,
-      savesCount: json['savesCount'] ?? 0,
-      commentsCount: json['commentsCount'] ?? 0,
-    );
-  }
+  final apiModel = PostApiModel.fromJson(json);
+  return apiModel.toEntity();
+}
 }

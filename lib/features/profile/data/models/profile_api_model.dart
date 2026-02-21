@@ -1,8 +1,17 @@
 import 'package:not_a_writing_app/features/profile/domain/entities/profile_entity.dart';
 import 'package:not_a_writing_app/features/profile/domain/usecases/update_user_usecase.dart';
 
-class ProfileApiModel extends ProfileEntity {
-  ProfileApiModel({required super.id, required super.name, required super.email, required super.profilePicture, required super.occupation, required super.bio, super.token, required super.postsCount});
+class ProfileApiModel{
+  ProfileApiModel({required this.id, required this.name, required this.email, required this.profilePicture, required this.occupation, required this.bio, this.token, required this.postsCount});
+
+  final String id;
+  final String name;
+  final String email;
+  final String profilePicture;
+  final String occupation;
+  final String bio;
+  final String? token;
+  final int postsCount;
 
   Map<String, dynamic> toJson({String? password}) {
     return {
@@ -19,12 +28,14 @@ class ProfileApiModel extends ProfileEntity {
 
     factory ProfileApiModel.fromJson(Map<String, dynamic> json) {
     return ProfileApiModel(
-      id: json['_id'],
+      id: json['_id'] ?? json['userId'] ?? '',
       name: json['name'],
       email: json['email'],
       profilePicture: json['profilePicture'] ?? 'default-picture.png',
       occupation: json['occupation'] ?? '',
-      bio: json['bio'] ?? '', token: json['token'], postsCount: json['postsCount'] ?? 0,
+      bio: json['bio'] ?? '', token: json['token'], postsCount: (json['postsCount'] is int)
+    ? json['postsCount']
+    : int.tryParse(json['postsCount'].toString()) ?? 0,
     );
   }
 
