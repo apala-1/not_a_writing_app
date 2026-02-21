@@ -117,6 +117,37 @@ static String updateComment(String commentId) =>
 static String deleteComment(String commentId) =>
     '$comments/$commentId';
 
+// ===== FOLLOW =====
+static const String followBase = '/follow';
+
+// POST /follow/follow
+static String followUser() => '$followBase/follow';
+
+// POST /follow/unfollow
+static String unfollowUser() => '$followBase/unfollow';
+
+// GET /follow/followers/:userId
+static String getFollowers(String userId) =>
+    '$followBase/followers/$userId';
+
+// GET /follow/following/:userId
+static String getFollowing(String userId) =>
+    '$followBase/following/$userId';
+
+// GET /follow/status/:userId
+static String followStatus(String userId) =>
+    '$followBase/status/$userId';
+
+// GET /follow/count/:userId
+static String followCount(String userId) =>
+    '$followBase/count/$userId';
+
+// GET /follow/can-message/:userA/:userB
+static String canMessage(String userA, String userB) =>
+    '$followBase/can-message/$userA/$userB';
+
+static String searchUsers(String query) =>
+    '/follow/search?q=$query';
 
   // ===== TIMEOUTS =====
   static const Duration connectionTimeout = Duration(seconds: 30);

@@ -3,6 +3,7 @@ import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_s
 import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/book_detail_screen.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/dashboard_screen.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/profile_screen.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/search_users_page.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/widgets/appbar_title.dart';
 
 class BottomNavigationScreen extends StatefulWidget {
@@ -18,7 +19,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
   List <Widget> lstBottomScreen = [
     const DashboardScreen(),
     const BookBrowserScreen(),
-    const BookDetailScreen(),
+    const SearchUsersPage(),
     const ProfileScreen(),
   ];
   @override
