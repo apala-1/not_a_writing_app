@@ -99,7 +99,7 @@ Future<ProfileApiModel> updateProfile(UpdateProfileParams params) async {
   }
 
   final response = await _apiClient.put(
-    '${ApiEndpoints.me}',
+    '${ApiEndpoints.updateMe}',
     data: formData,
     options: Options(
       headers: {

@@ -26,4 +26,10 @@ class CommentRepositoryImpl implements CommentRepository {
   Future<void> deleteComment(String commentId) {
     return remote.deleteComment(commentId);
   }
+
+  @override
+Future<List<CommentEntity>> getWholeCommentWithProfile(String userId) async {
+  final models = await remote.getWholeCommentWithProfile(userId);
+  return models.map((e) => e.toEntity()).toList();
+}
 }

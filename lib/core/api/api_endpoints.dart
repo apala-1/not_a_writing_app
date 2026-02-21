@@ -120,6 +120,10 @@ static String updateComment(String commentId) =>
 static String deleteComment(String commentId) =>
     '$comments/$commentId';
 
+// GET /comments/whole-comment/:userId
+static String getWholeCommentWithProfile(String userId) =>
+    '$comments/whole-comment/$userId';
+
 // ===== FOLLOW =====
 static const String followBase = '/follow';
 

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:not_a_writing_app/core/api/api_client.dart';
 import 'package:not_a_writing_app/core/api/api_endpoints.dart';
 import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
 import 'package:not_a_writing_app/features/dashboard/data/datasources/comment_datasource.dart';
@@ -7,9 +8,11 @@ import 'package:not_a_writing_app/features/dashboard/data/models/comment_api_mod
 
 class CommentRemoteDataSourceImpl implements CommentRemoteDataSource {
   final UserSessionService _userSessionService;
+  final ApiClient _apiClient;
 
-  CommentRemoteDataSourceImpl({required UserSessionService userSessionService})
-      : _userSessionService = userSessionService;
+  CommentRemoteDataSourceImpl({required UserSessionService userSessionService, required ApiClient apiClient})
+      : _userSessionService = userSessionService,
+        _apiClient = apiClient;
 
   Future<String> _getToken() async =>
       await _userSessionService.getUserToken() ?? '';
@@ -81,4 +84,17 @@ class CommentRemoteDataSourceImpl implements CommentRemoteDataSource {
       throw Exception('Failed to delete comment: ${res.body}');
     }
   }
+
+  Future<List<CommentApiModel>> getWholeCommentWithProfile(String userId) async {
+  final response = await _apiClient.get(
+    ApiEndpoints.getWholeCommentWithProfile(userId),
+  );
+
+  if (response.statusCode == 200) {
+    final List data = response.data['data'];
+    return data.map((e) => CommentApiModel.fromJson(e)).toList();
+  } else {
+    throw Exception('Failed to fetch comments');
+  }
+}
 }

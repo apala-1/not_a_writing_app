@@ -20,4 +20,14 @@ class CommentApiModel extends CommentEntity {
       createdAt: DateTime.parse(json['createdAt']),
     );
   }
+
+  CommentEntity toEntity() {
+    return CommentEntity(
+      id: id,
+      postId: postId,
+      userId: userId,
+      content: content,
+      createdAt: createdAt,
+    );
+  }
 }

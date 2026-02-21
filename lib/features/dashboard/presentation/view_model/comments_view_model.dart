@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:not_a_writing_app/core/api/api_client.dart';
 import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
 import 'package:not_a_writing_app/features/dashboard/data/datasources/remote/comment_remotedatasource.dart';
 import 'package:not_a_writing_app/features/dashboard/data/repositories/comment_repository.dart';
@@ -38,9 +39,9 @@ final userSessionProvider = Provider<UserSessionService>((ref) {
 final commentViewModelProvider =
     StateNotifierProvider<CommentViewModel, CommentState>((ref) {
   final userSession = ref.read(userSessionProvider);
-
+  final ApiClient apiClient = ref.read(apiClientProvider);
   final repo = CommentRepositoryImpl(
-    CommentRemoteDataSourceImpl(userSessionService: userSession),
+    CommentRemoteDataSourceImpl(userSessionService: userSession, apiClient: apiClient),
   );
 
   return CommentViewModel(

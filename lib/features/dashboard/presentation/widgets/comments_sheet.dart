@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:not_a_writing_app/core/api/api_endpoints.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/view_model/comments_view_model.dart';
 import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
 import 'package:not_a_writing_app/features/profile/presentation/viewmodel/profile_view_model.dart';
@@ -119,9 +120,12 @@ void _postComment() async {
                           onLongPress: () => _showCommentOptions(comment),
                           child: ListTile(
                             leading: CircleAvatar(
-                              backgroundImage:
-                                  NetworkImage(commentProfile?.profilePicture ?? ''),
-                              onBackgroundImageError: (_, __) =>
+                              backgroundImage: (profiles?.profilePicture != null &&
+          profiles!.profilePicture.isNotEmpty &&
+          profiles.profilePicture != 'default-picture.png')
+                                  ? NetworkImage('${ApiEndpoints.mediaServerUrl}/uploads/${commentProfile?.profilePicture}')
+                                  : AssetImage('assets/images/google.png') as ImageProvider,
+                              onBackgroundImageError: (_, _) =>
                                   const Icon(Icons.person),
                             ),
                             title: Text(commentProfile?.name ?? 'Unknown'),
