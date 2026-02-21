@@ -152,6 +152,15 @@ static String canMessage(String userA, String userB) =>
 static String searchUsers(String query) =>
     '/follow/search?q=$query';
 
+// ===== CHAT =====
+static const String chat = '/chat';
+
+// POST /chat/send
+static String sendMessage() => '$chat/send';
+
+// GET /chat/conversation/:userA/:userB
+static String getConversation(String userA, String userB) => '$chat/conversation/$userA/$userB';
+
   // ===== TIMEOUTS =====
   static const Duration connectionTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);

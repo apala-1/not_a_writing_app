@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:not_a_writing_app/core/api/api_client.dart';
 import 'package:not_a_writing_app/core/api/api_endpoints.dart';
 import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/chat_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserProfilePage extends StatefulWidget {
@@ -18,6 +19,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   List posts = [];
   bool canMessage = false;
   bool loading = true;
+  String? myId;
 
   @override
   void initState() {
@@ -29,13 +31,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final prefs = await SharedPreferences.getInstance();
     final session = UserSessionService(prefs: prefs);
     apiClient = ApiClient(session);
+    myId = session.getUserId();
     await fetchUserProfile();
   }
 
   Future<void> fetchUserProfile() async {
     setState(() => loading = true);
 
-    // 1️⃣ Get user details
+   // 1️⃣ Get user details
     final res = await apiClient.get("${ApiEndpoints.baseUrl}${ApiEndpoints.getProfile(widget.userId)}");
     userDetails = res.data['data'];
 
@@ -44,9 +47,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
     posts = postsRes.data['data'];
 
     // 3️⃣ Check if current user can message
-    final prefs = await SharedPreferences.getInstance();
-final session = UserSessionService(prefs: prefs);
-final myId = session.getUserId(); // no await
     final msgRes = await apiClient.get("${ApiEndpoints.baseUrl}${ApiEndpoints.canMessage(myId!, widget.userId)}");
     canMessage = msgRes.data['canMessage'] ?? false;
 
@@ -77,10 +77,19 @@ final myId = session.getUserId(); // no await
             const SizedBox(height: 8),
             Text(userDetails?['bio'] ?? ''),
             const SizedBox(height: 12),
-            if (canMessage)
+            if (canMessage && myId != null)
               ElevatedButton(
                 onPressed: () {
-                  // Navigate to chat screen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ChatScreen(
+                        myId: myId!, // now accessible
+                        receiverId: widget.userId,
+                        receiverName: userDetails?['name'] ?? '',
+                      ),
+                    ),
+                  );
                 },
                 child: const Text("Message"),
               ),
