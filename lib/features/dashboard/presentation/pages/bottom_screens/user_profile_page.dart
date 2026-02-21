@@ -36,7 +36,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     setState(() => loading = true);
 
     // 1️⃣ Get user details
-    final res = await apiClient.get(ApiEndpoints.getProfile(widget.userId));
+    final res = await apiClient.get("${ApiEndpoints.baseUrl}${ApiEndpoints.getProfile(widget.userId)}");
     userDetails = res.data['data'];
 
     // 2️⃣ Get user posts
@@ -47,7 +47,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final prefs = await SharedPreferences.getInstance();
 final session = UserSessionService(prefs: prefs);
 final myId = session.getUserId(); // no await
-    final msgRes = await apiClient.get(ApiEndpoints.canMessage(myId!, widget.userId));
+    final msgRes = await apiClient.get("${ApiEndpoints.baseUrl}${ApiEndpoints.canMessage(myId!, widget.userId)}");
     canMessage = msgRes.data['canMessage'] ?? false;
 
     setState(() => loading = false);
