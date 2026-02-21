@@ -43,7 +43,7 @@ static const String resetPassword = '$auth/reset-password';
   static String userById(String id) => '/users/$id';
 
   // ===== MEDIA =====
-  // static String media(String filename) => '$serverUrl/uploads/$filename';
+  static String media(String filename) => '$serverUrl/uploads/$filename';
 
   // ===== POSTS =====
 static const String posts = '/post';
@@ -83,6 +83,9 @@ static String addShare(String postId) => '$posts/$postId/share';
 
 // GET /post/ranked-feed/:userId
 static String rankedFeed(String userId) => '$posts/ranked-feed/$userId';
+
+// GET /profile/:userId/posts
+static String getOwnPosts(String userId) => '$profile/profile/$userId/posts';
 
 // ===== PROFILE =====
 static const String profile = '/profile';

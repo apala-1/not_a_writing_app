@@ -5,6 +5,7 @@ import 'package:not_a_writing_app/core/api/api_client.dart';
 import 'package:not_a_writing_app/core/api/api_endpoints.dart';
 import 'package:not_a_writing_app/core/services/storage/follow_service.dart';
 import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/user_profile_page.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/widgets/follow_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,6 +29,15 @@ class _SearchUsersPageState extends State<SearchUsersPage> {
 void initState() {
   super.initState();
   initServices();
+}
+
+void _navigateToUserProfile(String userId) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => UserProfilePage(userId: userId),
+    ),
+  );
 }
 
 Future<void> initServices() async {
@@ -88,18 +98,19 @@ setState(() {});
                       final user = users[index];
 
                       return ListTile(
-                        leading: CircleAvatar(
-                          backgroundImage: NetworkImage(
-                            "${ApiEndpoints.serverUrl}/uploads/${user['profilePicture']}",
-                          ),
-                        ),
-                        title: Text(user['name']),
-                        subtitle: Text(user['bio'] ?? ""),
-                        trailing: FollowButton(
-                          userId: user['_id'],
-                          service: followService,
-                        ),
-                      );
+  onTap: () => _navigateToUserProfile(user['_id']),
+  leading: CircleAvatar(
+    backgroundImage: NetworkImage(
+      "${ApiEndpoints.serverUrl}/uploads/${user['profilePicture']}",
+    ),
+  ),
+  title: Text(user['name']),
+  subtitle: Text(user['bio'] ?? ""),
+  trailing: FollowButton(
+    userId: user['_id'],
+    service: followService,
+  ),
+);
                     },
                   ),
           ),

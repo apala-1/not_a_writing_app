@@ -11,15 +11,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       elevation: 1.5,
       shadowColor: Colors.black12,
       titleSpacing: 0,
+      automaticallyImplyLeading: false,
       title: Row(
         children: [
-          // Menu icon
-          IconButton(
-            icon: const Icon(Icons.menu, color: AppColors.textPrimary),
-            onPressed: () {
-              // Open drawer or menu action
-            },
-          ),
+          const SizedBox(width: 18), // Left padding
 
           // Logo
           SizedBox(
