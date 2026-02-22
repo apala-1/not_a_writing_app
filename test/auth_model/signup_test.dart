@@ -53,6 +53,12 @@ class FakeAuthViewModel extends StateNotifier<AuthState> implements AuthViewmode
     // TODO: implement resetPassword
     throw UnimplementedError();
   }
+  
+  @override
+  Future<void> loginWithGoogle(String idToken) {
+    // TODO: implement loginWithGoogle
+    throw UnimplementedError();
+  }
 }
 
 Widget createTestApp(FakeAuthViewModel fakeVm) {

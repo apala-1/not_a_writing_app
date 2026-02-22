@@ -91,7 +91,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               const SizedBox(height: 4),
 
               Text(
-                profile?.occupation ?? '',
+                profile?.occupation ?? 'No Occupation',
                 style: const TextStyle(
                   color: AppColors.textSecondary,
                 ),

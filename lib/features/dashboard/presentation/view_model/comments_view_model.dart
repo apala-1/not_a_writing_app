@@ -104,7 +104,10 @@ class CommentViewModel extends StateNotifier<CommentState> {
   }
 
   Future<void> loadCommentsWithProfiles(String postId, WidgetRef ref) async {
-  state = CommentState(comments: const AsyncValue.loading());
+  state = state.copyWith(
+  comments: const AsyncValue.loading(),
+  status: CommentStatus.loading,
+);
   try {
     // 1. Load all comments
     final comments = await getComments(postId);

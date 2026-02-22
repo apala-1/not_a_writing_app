@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
+import 'package:not_a_writing_app/features/auth/data/repositories/auth_repository.dart';
 import 'package:not_a_writing_app/features/auth/domain/usecases/forgot_password_usecase.dart';
 import 'package:not_a_writing_app/features/auth/domain/usecases/login_usecase.dart';
 import 'package:not_a_writing_app/features/auth/domain/usecases/logout_usecase.dart';
@@ -174,5 +175,32 @@ Future<void> resetPassword({
   );
 }
 
+Future<void> loginWithGoogle(String idToken) async {
+    state = state.copyWith(status: AuthStatus.loading);
+
+    final result = await ref.read(authRepositoryProvider).loginWithGoogle(idToken);
+
+    result.fold(
+      (failure) {
+        state = state.copyWith(
+          status: AuthStatus.error,
+          errorMessage: failure.message,
+        );
+      },
+      (authEntity) async {
+        final userSessionService = ref.read(userSessionServiceProvider);
+        await userSessionService.saveUserSession(
+          authId: authEntity.authId!,
+          email: authEntity.email,
+          name: authEntity.name,
+          token: authEntity.token!,
+        );
+        state = state.copyWith(
+          status: AuthStatus.authenticated,
+          authEntity: authEntity,
+        );
+      },
+    );
+  }
 
 }

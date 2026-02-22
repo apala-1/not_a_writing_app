@@ -110,4 +110,17 @@ Future<void> resetPassword(String token, String password) async {
     throw Exception(response.data['message']);
   }
 }
+
+@override
+Future<AuthApiModel?> loginWithGoogle(String idToken) async {
+    final response = await _apiClient.post(
+      ApiEndpoints.googleLogin, // your "/google-login"
+      data: {'idToken': idToken},
+    );
+
+    if (response.data['success'] == true) {
+      return AuthApiModel.fromJson(response.data);
+    }
+    return null;
+  }
 }

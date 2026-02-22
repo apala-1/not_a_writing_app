@@ -200,4 +200,20 @@ Future<Either<Failure, AuthEntity>> register(AuthEntity user) async {
   }
   return const Left(ApiFailure(message: "No internet connection"));
   }
+
+  @override
+  Future<Either<Failure, AuthEntity>> loginWithGoogle(String idToken) async {
+    try {
+      final model = await _authRemoteDataSource.loginWithGoogle(idToken);
+      if (model != null) return Right(model.toEntity());
+      return const Left(ApiFailure(message: "Google login failed"));
+    } on DioException catch (e) {
+      return Left(ApiFailure(
+        message: e.response?.data['message'] ?? "Google login failed",
+        statusCode: e.response?.statusCode,
+      ));
+    } catch (e) {
+      return Left(ApiFailure(message: e.toString()));
+    }
+  }
 }

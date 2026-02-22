@@ -7,7 +7,7 @@ class ApiEndpoints {
 
   // Configuration
   // static const bool isPhysicalDevice = false;
-  static const String _ipAddress = "10.168.87.66";
+  static const String _ipAddress = "10.105.246.66";
   static const int _port = 3000;
 
   // Base URLs
@@ -36,6 +36,7 @@ static const String resetPassword = '$auth/reset-password';
   static const String me = '$auth/me';
   static const String updateMe = '$auth/me';
   static const String deleteMe = '$auth/me';
+  static const String googleLogin = '$auth/google-login';
 
   // ===== ADMIN USERS =====
   static const String users = '/users';
