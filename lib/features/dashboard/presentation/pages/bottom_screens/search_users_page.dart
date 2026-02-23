@@ -70,7 +70,7 @@ setState(() {});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Search Users")),
+      appBar: AppBar(title: const Text("Search Users"), automaticallyImplyLeading: false,),
       body: Column(
         children: [
           // 🔎 Search Bar

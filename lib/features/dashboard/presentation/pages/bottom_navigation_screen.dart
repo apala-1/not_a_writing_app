@@ -4,6 +4,7 @@ import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_s
 import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/dashboard_screen.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/profile_screen.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/search_users_page.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/view_messages_screen.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/widgets/appbar_title.dart';
 
 class BottomNavigationScreen extends StatefulWidget {
@@ -20,6 +21,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
     const DashboardScreen(),
     const BookBrowserScreen(),
     const SearchUsersPage(),
+    const ViewMessagesScreen(),
     const ProfileScreen(),
   ];
   @override
@@ -32,7 +34,8 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.menu_book_outlined), label: "Menu"),
-          BottomNavigationBarItem(icon: Icon(Icons.edit_outlined), label: "Write"),
+          BottomNavigationBarItem(icon: Icon(Icons.search_outlined), label: "Search"),
+          BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline_outlined), label: "Message"),
           BottomNavigationBarItem(icon: Icon(Icons.person_2_outlined), label: "Profile")
         ],
         backgroundColor: Colors.white,
