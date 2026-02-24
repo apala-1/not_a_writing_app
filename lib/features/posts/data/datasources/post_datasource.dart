@@ -23,8 +23,8 @@ abstract class IPostRemoteDatasource {
   // Basic Actions
   Future<void> addShare(String postId);
   Future<void> addView(String postId);
-  Future<void> toggleLike(String postId);
-  Future<void> toggleSave(String postId);
+  Future<PostEntity> toggleLike(String postId);
+  Future<PostEntity> toggleSave(String postId);
 
   // Fetching Posts
   Future<List<PostEntity>> getAllPosts({int skip = 0, int limit = 10});

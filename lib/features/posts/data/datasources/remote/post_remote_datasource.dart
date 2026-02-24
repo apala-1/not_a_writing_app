@@ -201,29 +201,30 @@ Future<PostEntity> getPostById(String postId) async {
 }
 
 @override
-Future<void> toggleLike(String postId) async {
+Future<PostEntity> toggleLike(String postId) async {
   final res = await http.post(
     Uri.parse('${ApiEndpoints.baseUrl}${ApiEndpoints.toggleLike(postId)}'),
     headers: {'Authorization': 'Bearer ${await _getToken()}'},
   );
 
-  if (res.statusCode != 200) {
-    throw Exception('Failed to toggle like');
-  }
+  if (res.statusCode != 200) throw Exception('Failed to toggle like');
+
+  final data = jsonDecode(res.body)['data']; // make sure backend returns updated post
+  return _mapJsonToPost(data);
 }
 
 @override
-Future<void> toggleSave(String postId) async {
+Future<PostEntity> toggleSave(String postId) async {
   final res = await http.post(
     Uri.parse('${ApiEndpoints.baseUrl}${ApiEndpoints.toggleSave(postId)}'),
     headers: {'Authorization': 'Bearer ${await _getToken()}'},
   );
 
-  if (res.statusCode != 200) {
-    throw Exception('Failed to toggle save');
-  }
-}
+  if (res.statusCode != 200) throw Exception('Failed to toggle save');
 
+  final data = jsonDecode(res.body)['data']; // expect "saved" or "unsaved"
+  return _mapJsonToPost(data); // backend should send updated post data
+}
 
   @override
   Future<void> addShare(String postId) async {

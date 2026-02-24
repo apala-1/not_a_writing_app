@@ -50,52 +50,57 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
   }
 
   Future<void> submitPost() async {
-    if (_titleController.text.isEmpty ||
-        _descriptionController.text.isEmpty ||
-        _contentController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('All fields are required')),
-      );
-      return;
-    }
-
-    setState(() => isLoading = true);
-
-    try {
-      final postRepo = ref.read(postRepositoryProvider);
-
-      final post = await postRepo.createPost(
-        title: _titleController.text,
-        description: _descriptionController.text,
-        content: _contentController.text,
-        isDraft: isDraft,
-        attachments: _selectedImages,
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isDraft ? 'Draft saved successfully' : 'Post published successfully',
-          ),
-        ),
-      );
-
-      // Reset form
-      _titleController.clear();
-      _descriptionController.clear();
-      _contentController.clear();
-      setState(() {
-        _selectedImages.clear();
-        isDraft = false;
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-    } finally {
-      setState(() => isLoading = false);
-    }
+  if (_titleController.text.isEmpty ||
+      _descriptionController.text.isEmpty ||
+      _contentController.text.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('All fields are required')),
+    );
+    return;
   }
+
+  setState(() => isLoading = true);
+
+  try {
+    final postRepo = ref.read(postRepositoryProvider);
+
+    final post = await postRepo.createPost(
+      title: _titleController.text,
+      description: _descriptionController.text,
+      content: _contentController.text,
+      isDraft: isDraft,
+      attachments: _selectedImages,
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isDraft ? 'Draft saved successfully' : 'Post published successfully',
+        ),
+      ),
+    );
+
+    // Reset form
+    _titleController.clear();
+    _descriptionController.clear();
+    _contentController.clear();
+    setState(() {
+      _selectedImages.clear();
+      isDraft = false;
+    });
+
+    // ← Pop back and signal that a new post was created
+    if (!isDraft) {
+      Navigator.pop(context, true); // true indicates new post was created
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: $e')),
+    );
+  } finally {
+    setState(() => isLoading = false);
+  }
+}
 
   @override
   Widget build(BuildContext context) {

@@ -26,8 +26,8 @@ abstract class IPostRepository {
   Future<List<PostEntity>> getAllPosts({int skip = 0, int limit = 10});
   Future<PostEntity> getPostById(String postId);
   Future<List<PostEntity>> getMyPosts(String userId, {int skip = 0, int limit = 10});
-  Future<void> toggleLike(String postId);
-  Future<void> toggleSave(String postId);
+  Future<PostEntity> toggleLike(String postId);
+  Future<PostEntity> toggleSave(String postId);
   Future<void> addShare(String postId);
   Future<void> addView(String postId);
 

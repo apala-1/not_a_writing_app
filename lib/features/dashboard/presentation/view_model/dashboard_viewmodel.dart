@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:not_a_writing_app/features/auth/presentation/view_model/auth_viewmodel.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/state/dashboard_state.dart';
+import 'package:not_a_writing_app/features/posts/data/repositories/post_repository.dart';
 import 'package:not_a_writing_app/features/posts/domain/entities/post_entity.dart';
-import 'package:not_a_writing_app/features/posts/presentation/pages/write_create_screen.dart';
+import 'package:not_a_writing_app/features/posts/presentation/state/post_with_user_state.dart';
 import 'package:not_a_writing_app/features/profile/data/datasources/remote/profile_remote_datasource.dart';
 import 'package:not_a_writing_app/features/profile/data/models/profile_api_model.dart';
 
@@ -10,26 +12,6 @@ final dashboardViewModelProvider =
     StateNotifierProvider<DashboardViewModel, DashboardState>(
   (ref) => DashboardViewModel(ref),
 );
-
-class DashboardState {
-  final AsyncValue<List<PostEntity>> posts;
-  final AsyncValue<ProfileApiModel> profile; // Profile can be null now
-
-  DashboardState({
-    required this.posts,
-    required this.profile,
-  });
-
-  DashboardState copyWith({
-    AsyncValue<List<PostEntity>>? posts,
-    AsyncValue<ProfileApiModel?>? profile,
-  }) {
-    return DashboardState(
-      posts: posts ?? this.posts,
-      profile: this.profile,
-    );
-  }
-}
 
 class DashboardViewModel extends StateNotifier<DashboardState> {
   final Ref _ref;
@@ -60,7 +42,9 @@ class DashboardViewModel extends StateNotifier<DashboardState> {
       _skip += posts.length;
 
       final currentPosts = state.posts.value ?? [];
-      state = state.copyWith(posts: AsyncValue.data([...currentPosts, ...posts]));
+      final newPosts = posts.map((p) => PostWithUserState(post: p, isSaved: p.isSaved, isLiked: p.isLiked)).toList();
+
+      state = state.copyWith(posts: AsyncValue.data([...currentPosts, ...newPosts]));
     } catch (e, st) {
       state = state.copyWith(posts: AsyncValue.error(e, st));
     } finally {
@@ -70,13 +54,19 @@ class DashboardViewModel extends StateNotifier<DashboardState> {
 
   bool get hasMore => _hasMore;
 
+  Future<void> refreshPosts() async {
+  _skip = 0;
+  _hasMore = true;
+  state = state.copyWith(posts: const AsyncValue.data([]));
+  await fetchPosts();
+}
+
   // ---------------- Profile ----------------
   Future<void> fetchProfileStats() async {
     state = state.copyWith(profile: const AsyncValue.loading());
     try {
       final user = _ref.read(authViewmodelProvider).authEntity;
       if (user == null) {
-        // No user logged in, just set profile as null, not an error
         state = state.copyWith(profile: AsyncValue.data(null));
         return;
       }
@@ -90,26 +80,48 @@ class DashboardViewModel extends StateNotifier<DashboardState> {
 
   // ---------------- Post Actions ----------------
   Future<void> toggleLike(String postId) async {
-    await _ref.read(postRepositoryProvider).toggleLike(postId);
-    _updatePostInState(postId, (p) => p.copyWith(likesCount: p.likesCount + 1));
-  }
+  final updatedPost =
+      await _ref.read(postRepositoryProvider).toggleLike(postId);
 
-  Future<void> toggleSave(String postId) async {
-    await _ref.read(postRepositoryProvider).toggleSave(postId);
-    _updatePostInState(postId, (p) =>
-        !p.savesCount.isNegative ? p.copyWith(savesCount: p.savesCount + 1) : p);
-  }
+  _updatePostInState(
+    postId,
+    (p) => p.copyWith(
+      post: updatedPost,
+      isLiked: !p.isLiked, // or compute properly if needed
+    ),
+  );
+}
+
+ Future<void> toggleSave(String postId) async {
+  final updatedPost =
+      await _ref.read(postRepositoryProvider).toggleSave(postId);
+
+  _updatePostInState(
+    postId,
+    (p) => p.copyWith(
+      post: updatedPost,
+      isSaved: !p.isSaved,
+    ),
+  );
+}
 
   Future<void> addShare(String postId) async {
     await _ref.read(postRepositoryProvider).addShare(postId);
-    _updatePostInState(postId, (p) => p.copyWith(sharesCount: p.sharesCount + 1));
+
+    _updatePostInState(postId, (p) => p.copyWith(
+          post: p.post.copyWith(sharesCount: (p.post.sharesCount + 1)),
+        ));
   }
 
-  void _updatePostInState(String postId, PostEntity Function(PostEntity) updateFn) {
+  void _updatePostInState(
+      String postId, PostWithUserState Function(PostWithUserState) updateFn) {
     final posts = state.posts.value;
     if (posts == null) return;
+
     state = state.copyWith(
-      posts: AsyncValue.data(posts.map((p) => p.id == postId ? updateFn(p) : p).toList()),
+      posts: AsyncValue.data(
+        posts.map((p) => p.post.id == postId ? updateFn(p) : p).toList(),
+      ),
     );
   }
 }

@@ -108,12 +108,12 @@ class PostRepositoryImpl implements IPostRepository {
   }
 
   @override
-  Future<void> toggleLike(String postId) {
+  Future<PostEntity> toggleLike(String postId) {
     return _remoteDatasource.toggleLike(postId);
   }
 
   @override
-  Future<void> toggleSave(String postId) {
+  Future<PostEntity> toggleSave(String postId) {
     return _remoteDatasource.toggleSave(postId);
   }
 }

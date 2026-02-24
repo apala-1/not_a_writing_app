@@ -22,6 +22,9 @@ class PostEntity extends Equatable {
   final int savesCount;
   final int commentsCount;
 
+  final bool isLiked;
+  final bool isSaved;
+
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -47,7 +50,7 @@ class PostEntity extends Equatable {
     this.commentsCount = 0,
 
     required this.createdAt,
-    required this.updatedAt,
+    required this.updatedAt, required this.isLiked, required this.isSaved,
   });
 
   bool get isDraft => status == "draft";
@@ -70,6 +73,8 @@ class PostEntity extends Equatable {
     int? commentsCount,
     DateTime? createdAt,
     DateTime? updatedAt,
+    bool? isLiked,
+    bool? isSaved,
   }) {
     return PostEntity(
       id: id ?? this.id,
@@ -89,7 +94,7 @@ class PostEntity extends Equatable {
       savesCount: savesCount ?? this.savesCount,
       commentsCount: commentsCount ?? this.commentsCount,
       createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
+      updatedAt: updatedAt ?? this.updatedAt, isLiked: isLiked ?? this.isLiked, isSaved: isSaved ?? this.isSaved,
     );
   }
 
@@ -112,5 +117,7 @@ class PostEntity extends Equatable {
         commentsCount,
         createdAt,
         updatedAt,
+        isLiked,
+        isSaved,
       ];
 }

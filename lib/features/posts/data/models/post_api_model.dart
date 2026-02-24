@@ -22,6 +22,9 @@ class PostApiModel {
 
   final List<Attachment> attachments;
 
+  final bool isLiked;
+  final bool isSaved;
+
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -41,7 +44,7 @@ class PostApiModel {
     required this.status,
     required this.visibility,
     required this.createdAt,
-    required this.updatedAt, required this.attachments,
+    required this.updatedAt, required this.attachments, required this.isLiked, required this.isSaved,
   });
 
   factory PostApiModel.fromJson(Map<String, dynamic> json) {
@@ -79,7 +82,7 @@ class PostApiModel {
       }
     }).toList(),
     createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
-    updatedAt: DateTime.tryParse(json['updatedAt'] ?? '') ?? DateTime.now(),
+    updatedAt: DateTime.tryParse(json['updatedAt'] ?? '') ?? DateTime.now(), isLiked: json['isLiked'] ?? false, isSaved: json['isSaved'] ?? false,
   );
 }
 
@@ -98,6 +101,8 @@ class PostApiModel {
           .toList(),
       "createdAt": createdAt.toIso8601String(),
       "updatedAt": updatedAt.toIso8601String(),
+      "isLiked": isLiked,
+      "isSaved": isSaved,
     };
   }
 
@@ -119,7 +124,7 @@ class PostApiModel {
       visibility: visibility,
       attachments: attachments,
       createdAt: createdAt,
-      updatedAt: updatedAt,
+      updatedAt: updatedAt, isLiked: isLiked, isSaved: isSaved,
     );
   }
 
@@ -141,7 +146,7 @@ class PostApiModel {
       visibility: entity.visibility,
       attachments: entity.attachments,
       createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
+      updatedAt: entity.updatedAt, isLiked: false, isSaved: false,
     );
   }
 }
