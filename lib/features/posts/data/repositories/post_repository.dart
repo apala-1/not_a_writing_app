@@ -92,6 +92,11 @@ class PostRepositoryImpl implements IPostRepository {
   }
 
   @override
+  Future<List<PostEntity>> getMyPosts(String userId, {int skip = 0, int limit = 10}) {
+    return _remoteDatasource.getMyPosts(userId,skip: skip, limit: limit);
+  }
+
+  @override
   Future<List<PostEntity>> getRankedFeed({
     int skip = 0,
     int limit = 10,

@@ -32,4 +32,5 @@ abstract class IPostRemoteDatasource {
   Future<List<PostEntity>> getFeed({String? lastCreatedAt, int limit = 10});
   Future<List<PostEntity>> getRankedFeed({int skip = 0, int limit = 10});
   Future<PostEntity> getPostById(String postId);
+  Future<List<PostEntity>> getMyPosts(String userId, {int skip = 0, int limit = 10});
 }

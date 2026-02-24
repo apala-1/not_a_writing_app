@@ -14,4 +14,13 @@ class GetPostsUsecase {
   final IPostRepository repository;
 
   GetPostsUsecase(this.repository);
+
+  Future<Either<Failure, List<PostEntity>>> call({int skip = 0, int limit = 10}) async {
+    try {
+      final posts = await repository.getAllPosts(skip: skip, limit: limit);
+      return Right(posts);
+    } catch (e) {
+      return Left(ApiFailure(message: e.toString()));
+    }
+  }
 }

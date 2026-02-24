@@ -247,4 +247,23 @@ Future<void> toggleSave(String postId) async {
   final apiModel = PostApiModel.fromJson(json);
   return apiModel.toEntity();
 }
+
+@override
+Future<List<PostEntity>> getMyPosts(String userId, {int skip = 0, int limit = 10}) async {
+  final uri = Uri.parse(
+    '${ApiEndpoints.baseUrl}${ApiEndpoints.getMyPosts(userId!)}?skip=$skip&limit=$limit',
+  );
+
+  final res = await http.get(
+    uri,
+    headers: {'Authorization': 'Bearer ${await _getToken()}'},
+  );
+
+  if (res.statusCode != 200) {
+    throw Exception('Failed to fetch user posts: ${res.body}');
+  }
+
+  final data = jsonDecode(res.body)['data'] as List;
+  return data.map((json) => _mapJsonToPost(json)).toList();
+}
 }

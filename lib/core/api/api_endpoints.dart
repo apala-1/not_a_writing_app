@@ -61,6 +61,9 @@ static String getFeed() => '$posts/feed';
 // GET /post/:id
 static String getPostById(String id) => '$posts/$id';
 
+// GET /post//my-posts
+static String getMyPosts(String userId) => '$posts/my-posts/$userId';
+
 // POST /post
 static String createPost() => posts;
 
@@ -165,6 +168,30 @@ static String sendMessage() => '$chat/send';
 
 // GET /chat/conversation/:userA/:userB
 static String getConversation(String userA, String userB) => '$chat/conversation/$userA/$userB';
+
+// ===== BOOKS =====
+static const String books = '/book';
+
+// GET /books
+static String getAllBooks() => books;
+
+// GET /books/drafts
+static String getBookDrafts() => '$books/drafts';
+
+// GET /books/:id
+static String getBookById(String id) => '$books/$id';
+
+// GET /books/token/:shareToken
+static String getBookByToken(String token) => '$books/token/$token';
+
+// POST /books
+static String createBook() => books;
+
+// PUT /books/:id
+static String updateBook(String id) => '$books/$id';
+
+// DELETE /books/:id
+static String deleteBook(String id) => '$books/$id';
 
   // ===== TIMEOUTS =====
   static const Duration connectionTimeout = Duration(seconds: 30);
