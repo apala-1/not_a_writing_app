@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:not_a_writing_app/core/api/api_endpoints.dart';
@@ -11,6 +13,8 @@ import 'package:not_a_writing_app/features/dashboard/presentation/widgets/quick_
 import 'package:not_a_writing_app/features/dashboard/presentation/widgets/streak_card.dart';
 import 'package:not_a_writing_app/features/posts/presentation/state/post_with_user_state.dart';
 import 'package:not_a_writing_app/theme/colors.dart';
+import 'dart:async';
+import 'package:sensors_plus/sensors_plus.dart';
 
 import 'book_detail_screen.dart';
 
@@ -23,16 +27,21 @@ class DashboardScreen extends ConsumerStatefulWidget {
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   final ScrollController _scrollController = ScrollController();
+  StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
+  double _shakeThreshold = 15.0;
+  bool _isRefreshing = false;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_scrollListener);
+    _startShakeDetection();
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _accelerometerSubscription?.cancel();
     super.dispose();
   }
 
@@ -54,6 +63,28 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     ref.read(dashboardViewModelProvider.notifier).refreshPosts();
   }
 }
+
+void _startShakeDetection() {
+    _accelerometerSubscription =
+        accelerometerEventStream().listen((AccelerometerEvent event) {
+      double acceleration =
+    sqrt(event.x * event.x + event.y * event.y + event.z * event.z);
+
+      if (acceleration > _shakeThreshold && !_isRefreshing) {
+        _isRefreshing = true;
+
+        // Showing Message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Refreshing feed...")),
+        );
+
+        ref.read(dashboardViewModelProvider.notifier).refreshPosts();
+        Future.delayed(const Duration(seconds: 2), () {
+          _isRefreshing = false;
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

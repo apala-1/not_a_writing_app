@@ -87,6 +87,9 @@ dependencies:
   pretty_dio_logger: ^1.4.0
   socket_io_client: ^3.1.4
 
+  # Sensors
+  sensors_plus: ^7.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
