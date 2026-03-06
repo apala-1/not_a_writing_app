@@ -19,6 +19,11 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
   int _selectedIndex = 0;
   bool _isNear = false;
 
+  // Modern Orange Rose Palette
+  static const Color primaryOrange = Color(0xFFFF7F00);
+  static const Color roseAccent = Color(0xFFF25C78);
+  static const Color backgroundLight = Color(0xFFFFF5F5);
+
   final List<Widget> lstBottomScreen = [
     const DashboardScreen(),
     const BookBrowserScreen(),
@@ -37,61 +42,127 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
         ProximityScreenLock.setActive(true);
 
         ProximityScreenLock.proximityStates.listen((objectDetected) {
-          // objectDetected is true when sensor is covered
-          setState(() {
-            _isNear = objectDetected;
-          });
-          print('Proximity detected: $_isNear');
+          if (mounted) {
+            setState(() {
+              _isNear = objectDetected;
+            });
+          }
+          debugPrint('Proximity detected: $_isNear');
         });
       } else {
-        print('Proximity lock not supported on this device');
+        debugPrint('Proximity lock not supported on this device');
       }
     });
   }
 
   @override
   void dispose() {
-    ProximityScreenLock.setActive(false); // deactivate when leaving
+    ProximityScreenLock.setActive(false);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backgroundLight,
       appBar: const CustomAppBar(),
       body: Stack(
         children: [
-          lstBottomScreen[_selectedIndex],
+          // Main Content
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: lstBottomScreen[_selectedIndex],
+          ),
+          
+          // Proximity Blur Overlay
           if (_isNear)
             Positioned.fill(
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
                 child: Container(
                   color: Colors.black.withOpacity(0.4),
+                  child: const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.visibility_off, color: Colors.white, size: 60),
+                        SizedBox(height: 10),
+                        Text(
+                          "Privacy Mode Active",
+                          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.menu_book_outlined), label: "Menu"),
-          BottomNavigationBarItem(icon: Icon(Icons.search_outlined), label: "Search"),
-          BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline_outlined), label: "Message"),
-          BottomNavigationBarItem(icon: Icon(Icons.person_2_outlined), label: "Profile")
-        ],
-        backgroundColor: Colors.white,
-        selectedItemColor: Color(0xFFEE7C2B),
-        unselectedItemColor: Color(0xFF64748B),
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: primaryOrange.withOpacity(0.15),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+            child: BottomNavigationBar(
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              items: [
+                _buildNavItem(Icons.home_rounded, Icons.home_outlined, "Home"),
+                _buildNavItem(Icons.menu_book_rounded, Icons.menu_book_outlined, "Library"),
+                _buildNavItem(Icons.search_rounded, Icons.search_outlined, "Search"),
+                _buildNavItem(Icons.chat_bubble_rounded, Icons.chat_bubble_outline_rounded, "Inbox"),
+                _buildNavItem(Icons.person_rounded, Icons.person_outline_rounded, "Profile"),
+              ],
+              currentIndex: _selectedIndex,
+              selectedItemColor: primaryOrange,
+              unselectedItemColor: const Color(0xFF94A3B8),
+              selectedLabelStyle: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+              unselectedLabelStyle: const TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 12,
+              ),
+              onTap: (index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+              },
+            ),
+          ),
+        ),
       ),
+    );
+  }
+
+  BottomNavigationBarItem _buildNavItem(IconData activeIcon, IconData inactiveIcon, String label) {
+    return BottomNavigationBarItem(
+      icon: Icon(inactiveIcon),
+      activeIcon: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: primaryOrange.withOpacity(0.1),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(activeIcon, color: primaryOrange),
+      ),
+      label: label,
     );
   }
 }
