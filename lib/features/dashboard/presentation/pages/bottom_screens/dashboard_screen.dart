@@ -28,7 +28,7 @@ class DashboardScreen extends ConsumerStatefulWidget {
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   final ScrollController _scrollController = ScrollController();
   StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
-  double _shakeThreshold = 15.0;
+  double _shakeThreshold = 20.0;
   bool _isRefreshing = false;
 
   @override
