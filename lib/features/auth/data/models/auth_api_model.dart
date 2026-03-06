@@ -26,26 +26,47 @@ class AuthApiModel {
     return data;
   }
 
-  // from JSON
-factory AuthApiModel.fromJson(Map<String, dynamic> json) {
-  final data = json['data'];
+ factory AuthApiModel.fromJsonRegister(Map<String, dynamic> json) {
+  print('Json:$json');
+  final data = json as Map<String, dynamic>? ?? json['data'] as Map<String, dynamic>?;
+  if (data == null) {
+    throw Exception('Auth response missing data');
+  }
+  // Some responses wrap user inside 'user', others just have data directly
+  final user = data['user'] as Map<String, dynamic>? ?? data;
+  print("User: $user");
+
+  return AuthApiModel(
+    authId: data['_id'] ?? data['id'] ?? data['authId'],
+    name: user['name'] ?? '',
+    email: user['email'] ?? '',
+    password: user['password'],
+    token: user['token'],
+    profilePicture: user['profilePicture'],
+  );
+}
+
+factory AuthApiModel.fromJsonLogin(Map<String, dynamic> json) {
+  print('Json:$json');
+  final data = json['data'] as Map<String, dynamic>?;
+
   if (data == null) {
     throw Exception('Auth response missing data');
   }
 
-  final user = data['user'];
-  if (user == null) {
-    throw Exception('Auth response missing user');
-  }
+  // user info might be nested inside 'user' (login) or directly (register)
+  final user = data['user'] as Map<String, dynamic>? ?? data;
 
   return AuthApiModel(
-    authId: user['_id'],
+    authId: user['_id'] ?? '',                   // always inside 'user' or 'data'
     name: user['name'] ?? '',
     email: user['email'] ?? '',
-    token: data['token'],
+    password: user['password'],
+    token: data['token'] as String?,             // always at top level of data
     profilePicture: user['profilePicture'],
   );
 }
+
 
 
 

@@ -44,7 +44,7 @@ Future<AuthApiModel?> login(String email, String password) async {
   );
 
    if (response.data['success'] == true) {
-    final user = AuthApiModel.fromJson(response.data);
+    final user = AuthApiModel.fromJsonLogin(response.data);
     return user; // just return the ApiModel
   }
 
@@ -60,7 +60,7 @@ Future<AuthApiModel?> login(String email, String password) async {
 @override
 Future<AuthApiModel> register(AuthApiModel user) async {
   final response = await _apiClient.post(
-    ApiEndpoints.users,
+    ApiEndpoints.register,
     data: user.toJson(),
   );
 
@@ -71,7 +71,7 @@ Future<AuthApiModel> register(AuthApiModel user) async {
   if (body is Map<String, dynamic> &&
       body['success'] == true &&
       body['data'] is Map<String, dynamic>) {
-    return AuthApiModel.fromJson(body['data']);
+    return AuthApiModel.fromJsonRegister(body['data']);
   }
 
   throw Exception("Invalid register response: $body");
@@ -119,7 +119,7 @@ Future<AuthApiModel?> loginWithGoogle(String idToken) async {
     );
 
     if (response.data['success'] == true) {
-      return AuthApiModel.fromJson(response.data);
+      return AuthApiModel.fromJsonLogin(response.data);
     }
     return null;
   }

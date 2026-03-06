@@ -3,11 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:not_a_writing_app/core/api/api_endpoints.dart';
 import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
 import 'package:not_a_writing_app/features/auth/presentation/view_model/auth_viewmodel.dart';
-import 'package:not_a_writing_app/features/auth/presentation/widgets/profile_action_tile.dart';
-import 'package:not_a_writing_app/features/auth/presentation/widgets/profile_stat_card.dart';
 import 'package:not_a_writing_app/features/profile/presentation/state/profile_state.dart';
 import 'package:not_a_writing_app/features/profile/presentation/viewmodel/profile_view_model.dart';
-import 'package:not_a_writing_app/theme/colors.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -17,13 +14,21 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  // Theme Palette
+  static const Color primaryOrange = Color(0xFFFF7F00);
+  static const Color roseAccent = Color(0xFFF25C78);
+  static const Color textDark = Color(0xFF1E293B);
+  static const Color textGray = Color(0xFF64748B);
+
   @override
   void initState() {
     super.initState();
     Future.microtask(() {
-          final userSession = ref.read(userSessionServiceProvider);
-          final userId = userSession.getUserId();
-      ref.read(profileViewmodelProvider.notifier).fetchFullProfile(userId!);
+      final userSession = ref.read(userSessionServiceProvider);
+      final userId = userSession.getUserId();
+      if (userId != null) {
+        ref.read(profileViewmodelProvider.notifier).fetchFullProfile(userId);
+      }
     });
   }
 
@@ -32,136 +37,221 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final profileState = ref.watch(profileViewmodelProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFFAFAFA),
       body: profileState.status == ProfileStatus.loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: primaryOrange))
           : profileState.status == ProfileStatus.error
-              ? Center(
-                  child: Text(
-                    profileState.errorMessage ?? 'Something went wrong',
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                )
+              ? _buildErrorState(profileState.errorMessage)
               : _buildProfileContent(context, profileState),
     );
   }
 
-  Widget _buildProfileContent(
-      BuildContext context, ProfileState profileState) {
+  Widget _buildErrorState(String? message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline_rounded, color: roseAccent, size: 60),
+          const SizedBox(height: 16),
+          Text(message ?? 'Something went wrong', style: const TextStyle(color: textGray)),
+          TextButton(
+            onPressed: () => setState(() {}),
+            child: const Text('Retry', style: TextStyle(color: primaryOrange)),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileContent(BuildContext context, ProfileState profileState) {
     final profile = profileState.profileEntity;
 
-    
-  debugPrint("Profile Posts Count: ${profile?.postsCount}");
-  debugPrint("Profile name: ${profile?.name}");
-
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          const SizedBox(height: 40),
-
-          /// PROFILE HEADER
-          Column(
+          // Header with Gradient Backdrop
+          Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
             children: [
-              CircleAvatar(
-  radius: 48,
-  backgroundColor: AppColors.cardBackground,
-  backgroundImage: (profile?.profilePicture != null &&
-          profile!.profilePicture.isNotEmpty &&
-          profile.profilePicture != 'default-picture.png')
-      ? NetworkImage('${ApiEndpoints.mediaServerUrl}/uploads/${profile.profilePicture}')
-      : AssetImage('assets/images/google.png') as ImageProvider,
-  child: (profile?.profilePicture == null ||
-          profile!.profilePicture.isEmpty ||
-          profile.profilePicture == 'onb_1.jpg')
-      ? const Icon(Icons.person, size: 48)
-      : null,
-),
-
-              const SizedBox(height: 12),
-
-              Text(
-                profile?.name ?? 'No name',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+              Container(
+                height: 200,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [primaryOrange, roseAccent],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(40),
+                    bottomRight: Radius.circular(40),
+                  ),
                 ),
               ),
-
-              const SizedBox(height: 4),
-
-              Text(
-                profile?.occupation ?? 'No Occupation',
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
+              Positioned(
+                top: 130,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: CircleAvatar(
+                    radius: 60,
+                    backgroundColor: const Color(0xFFF1F5F9),
+                    backgroundImage: (profile?.profilePicture != null &&
+                            profile!.profilePicture.isNotEmpty &&
+                            profile.profilePicture != 'default-picture.png')
+                        ? NetworkImage('${ApiEndpoints.mediaServerUrl}/uploads/${profile.profilePicture}')
+                        : null,
+                    child: (profile?.profilePicture == null || profile!.profilePicture.isEmpty)
+                        ? const Icon(Icons.person, size: 60, color: textGray)
+                        : null,
+                  ),
                 ),
               ),
-
-              if (profile?.bio != null && profile!.bio.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  profile.bio,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: AppColors.textSecondary),
-                ),
-              ],
             ],
           ),
 
+          const SizedBox(height: 70),
+
+          // Identity Info
+          Text(
+            profile?.name ?? 'Loading name...',
+            style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: textDark, letterSpacing: -0.5),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            profile?.occupation ?? 'Storyteller',
+            style: const TextStyle(fontSize: 16, color: roseAccent, fontWeight: FontWeight.w600),
+          ),
+          if (profile?.bio != null && profile!.bio.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+              child: Text(
+                profile.bio,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: textGray, height: 1.4),
+              ),
+            ),
+
           const SizedBox(height: 24),
 
-          /// STATS
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ProfileStatCard(label: 'Posts', value: profile?.postsCount.toString()),
-              ProfileStatCard(label: 'Streak', value: '4 🔥'),
-              ProfileStatCard(label: 'Reads', value: '9'),
-            ],
+          // Stats Row
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                _buildModernStatCard('Posts', profile?.postsCount.toString() ?? '0', Icons.article_rounded),
+                const SizedBox(width: 12),
+                _buildModernStatCard('Streak', '4 🔥', Icons.local_fire_department_rounded),
+                const SizedBox(width: 12),
+                _buildModernStatCard('Reads', '12', Icons.auto_stories_rounded),
+              ],
+            ),
           ),
 
           const SizedBox(height: 32),
 
-          /// ACTIONS
-          ProfileActionTile(
-            icon: Icons.edit,
-            title: 'Edit Profile',
-            backgroundColor: AppColors.cardBackground,
-            iconColor: AppColors.primaryOrange,
-            onTap: () {
-              Navigator.pushNamed(context, '/edit-profile');
-            },
-          ),
-
-          ProfileActionTile(
-            icon: Icons.bookmark,
-            title: 'Saved Posts',
-            backgroundColor: AppColors.cardBackground,
-            iconColor: AppColors.textSecondary,
-            onTap: () {},
-          ),
-
-          ProfileActionTile(
-            icon: Icons.settings,
-            title: 'Settings',
-            backgroundColor: AppColors.cardBackground,
-            iconColor: AppColors.textSecondary,
-            onTap: () {},
-          ),
-
-          ProfileActionTile(
-            icon: Icons.logout,
-            title: 'Log Out',
-            backgroundColor: AppColors.cardBackground,
-            iconColor: Colors.red,
-            onTap: () async {
-              await ref.read(authViewmodelProvider.notifier).logout();
-              if (context.mounted) {
-                Navigator.pushReplacementNamed(context, '/login');
-              }
-            },
+          // Actions Menu
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Account Settings', style: TextStyle(fontWeight: FontWeight.bold, color: textDark, fontSize: 16)),
+                const SizedBox(height: 12),
+                _buildActionTile(
+                  icon: Icons.edit_rounded,
+                  title: 'Edit Profile',
+                  color: primaryOrange,
+                  onTap: () => Navigator.pushNamed(context, '/edit-profile'),
+                ),
+                _buildActionTile(
+                  icon: Icons.bookmark_rounded,
+                  title: 'Saved Collections',
+                  color: Colors.blueAccent,
+                  onTap: () {},
+                ),
+                _buildActionTile(
+                  icon: Icons.settings_rounded,
+                  title: 'Preferences',
+                  color: textGray,
+                  onTap: () {},
+                ),
+                const SizedBox(height: 20),
+                const Text('Security', style: TextStyle(fontWeight: FontWeight.bold, color: textDark, fontSize: 16)),
+                const SizedBox(height: 12),
+                _buildActionTile(
+                  icon: Icons.logout_rounded,
+                  title: 'Log Out',
+                  color: roseAccent,
+                  onTap: () async {
+                    await ref.read(authViewmodelProvider.notifier).logout();
+                    if (context.mounted) {
+                      Navigator.pushReplacementNamed(context, '/login');
+                    }
+                  },
+                ),
+                const SizedBox(height: 40),
+              ],
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildModernStatCard(String label, String value, IconData icon) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4)),
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: primaryOrange.withOpacity(0.7), size: 22),
+            const SizedBox(height: 8),
+            Text(value, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: textDark)),
+            Text(label, style: const TextStyle(fontSize: 12, color: textGray, fontWeight: FontWeight.w500)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionTile({required IconData icon, required String title, required Color color, required VoidCallback onTap}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFF1F5F9)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const SizedBox(width: 16),
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w600, color: textDark)),
+              const Spacer(),
+              const Icon(Icons.chevron_right_rounded, color: textGray, size: 20),
+            ],
+          ),
+        ),
       ),
     );
   }
