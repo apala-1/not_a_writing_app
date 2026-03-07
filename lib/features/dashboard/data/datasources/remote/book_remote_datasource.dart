@@ -94,6 +94,7 @@ class BooksRemoteDataSourceImpl implements BooksRemoteDataSource {
     return BookApiModel.fromJson(data);
   }
 
+  @override
   Future<String> uploadChapterImage(File file) async {
   final form = FormData.fromMap({
     'image': await MultipartFile.fromFile(file.path, filename: file.uri.pathSegments.last),

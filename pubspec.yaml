@@ -92,6 +92,9 @@ dependencies:
   proximity_sensor: ^1.0.5
   proximity_screen_lock: ^2.2.0
 
+  #icons
+  lucide_icons_flutter: ^3.1.10
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

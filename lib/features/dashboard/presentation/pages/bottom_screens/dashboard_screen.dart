@@ -88,120 +88,117 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final titleCtrl = TextEditingController();
     final descCtrl = TextEditingController();
     final contentCtrl = TextEditingController();
-
     bool draft = false;
     final picked = <File>[];
 
     Future<void> pickImages(StateSetter setModalState) async {
       final images = await _picker.pickMultiImage(imageQuality: 85);
       if (images.isEmpty) return;
-
-      // enforce max 5 like backend
       final remaining = 5 - picked.length;
-      final take = images.take(remaining);
-
-      picked.addAll(take.map((x) => File(x.path)));
+      picked.addAll(images.take(remaining).map((x) => File(x.path)));
       setModalState(() {});
     }
 
     final ok = await showDialog<bool>(
-  context: context,
-  builder: (_) => StatefulBuilder(
-    builder: (context, setModalState) => AlertDialog(
-      title: const Text('Create Post'),
-      content: SizedBox(
-        width: double.maxFinite,
-        // constrain dialog height so it doesn't ask for intrinsics
-        height: MediaQuery.of(context).size.height * 0.55,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleCtrl,
-                decoration: const InputDecoration(labelText: 'Title'),
-              ),
-              TextField(
-                controller: descCtrl,
-                decoration: const InputDecoration(labelText: 'Description'),
-              ),
-              TextField(
-                controller: contentCtrl,
-                decoration: const InputDecoration(labelText: 'Content'),
-                maxLines: 5,
-              ),
-              const SizedBox(height: 12),
-              Row(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (context, setModalState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: const Text('Create New Story', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.9,
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  OutlinedButton.icon(
-                    onPressed: picked.length >= 5 ? null : () => pickImages(setModalState),
-                    icon: const Icon(Icons.photo_library),
-                    label: Text('Add images (${picked.length}/5)'),
+                  _buildStyledField(titleCtrl, 'Story Title', Icons.title_rounded),
+                  const SizedBox(height: 16),
+                  _buildStyledField(descCtrl, 'Short Summary', Icons.notes_rounded),
+                  const SizedBox(height: 16),
+                  _buildStyledField(contentCtrl, 'Share your thoughts...', Icons.edit_note_rounded, maxLines: 5),
+                  const SizedBox(height: 24),
+                  
+                  // Image Section Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Attachments', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textDark)),
+                      Text('${picked.length}/5', style: const TextStyle(color: textGray, fontWeight: FontWeight.bold)),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  if (picked.isNotEmpty)
-                    TextButton(
-                      onPressed: () {
-                        picked.clear();
-                        setModalState(() {});
-                      },
-                      child: const Text('Clear'),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: picked.length >= 5 ? null : () => pickImages(setModalState),
+                        icon: const Icon(Icons.add_photo_alternate_rounded, size: 20),
+                        label: const Text('Add Images'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryOrange,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      if (picked.isNotEmpty)
+                        TextButton(
+                          onPressed: () => setModalState(() => picked.clear()),
+                          child: const Text('Clear All', style: TextStyle(color: roseAccent, fontWeight: FontWeight.bold)),
+                        ),
+                    ],
+                  ),
+                  if (picked.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 100,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: picked.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 12),
+                        itemBuilder: (_, i) => _buildImagePreview(picked[i], () => setModalState(() => picked.removeAt(i))),
+                      ),
                     ),
+                  ],
+                  const Divider(height: 40, thickness: 1),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    activeColor: primaryOrange,
+                    value: draft,
+                    onChanged: (v) => setModalState(() => draft = v),
+                    title: const Text('Save as Draft', style: TextStyle(fontWeight: FontWeight.w700, color: textDark)),
+                    subtitle: const Text('Only visible to you until published', style: TextStyle(fontSize: 12)),
+                    secondary: Icon(Icons.drafts_rounded, color: draft ? primaryOrange : textGray),
+                  ),
                 ],
               ),
-              if (picked.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                SizedBox(
-                  height: 90,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: picked.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 8),
-                    itemBuilder: (_, i) => Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.file(
-                            picked[i],
-                            width: 90,
-                            height: 90,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        Positioned(
-                          right: 0,
-                          top: 0,
-                          child: IconButton(
-                            icon: const Icon(Icons.close),
-                            color: Colors.white,
-                            onPressed: () {
-                              picked.removeAt(i);
-                              setModalState(() {});
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 12),
-              SwitchListTile(
-                value: draft,
-                onChanged: (v) => setModalState(() => draft = v),
-                title: const Text('Save as draft'),
-              ),
-            ],
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel', style: TextStyle(color: textGray, fontWeight: FontWeight.bold)),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0, bottom: 8.0),
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryOrange,
+                  foregroundColor: Colors.white,
+                  elevation: 2,
+                  shadowColor: primaryOrange.withOpacity(0.4),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+                child: const Text('Post Story', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
         ),
       ),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-        FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Create')),
-      ],
-    ),
-  ),
-);
+    );
 
     if (ok == true) {
       await ref.read(dashboardVmProvider.notifier).onCreatePost(
@@ -209,215 +206,241 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             description: descCtrl.text.trim().isEmpty ? null : descCtrl.text.trim(),
             content: contentCtrl.text.trim(),
             asDraft: draft,
-            attachments: picked, // ✅ send picked files
+            attachments: picked,
           );
       await ref.read(dashboardVmProvider.notifier).refresh();
     }
   }
 
   Future<void> _showEditDialog(PostEntity post) async {
-  final titleCtrl = TextEditingController(text: post.title ?? '');
-  final descCtrl = TextEditingController(text: post.description ?? '');
-  final contentCtrl = TextEditingController(text: post.content ?? '');
+    final titleCtrl = TextEditingController(text: post.title ?? '');
+    final descCtrl = TextEditingController(text: post.description ?? '');
+    final contentCtrl = TextEditingController(text: post.content ?? '');
+    bool draft = post.status == 'draft';
+    final keepExisting = post.attachments.where((a) => a.id != null).toList();
+    final newPicked = <File>[];
 
-  bool draft = post.status == 'draft';
+    Future<void> pickNewImages(StateSetter setModalState) async {
+      final images = await _picker.pickMultiImage(imageQuality: 85);
+      if (images.isEmpty) return;
+      final remaining = 5 - (keepExisting.length + newPicked.length);
+      if (remaining <= 0) return;
+      newPicked.addAll(images.take(remaining).map((x) => File(x.path)));
+      setModalState(() {});
+    }
 
-  // existing attachments to keep (start: all)
-  final keepExisting = post.attachments
-      .where((a) => a.id != null) // must have mongo id to be keep-able
-      .toList();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (context, setModalState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: const Text('Edit Story', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.9,
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildStyledField(titleCtrl, 'Title', Icons.title_rounded),
+                  const SizedBox(height: 16),
+                  _buildStyledField(descCtrl, 'Description', Icons.description_outlined),
+                  const SizedBox(height: 16),
+                  _buildStyledField(contentCtrl, 'Story Content', Icons.edit_note_rounded, maxLines: 5),
+                  const SizedBox(height: 24),
+                  
+                  // Existing Attachments
+                  if (keepExisting.isNotEmpty) ...[
+                    _buildSectionHeader('Current Photos', '${keepExisting.length} kept'),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 100,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: keepExisting.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 12),
+                        itemBuilder: (_, i) => _buildNetworkPreview(keepExisting[i].url, () => setModalState(() => keepExisting.removeAt(i))),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
 
-  // new attachments to add
-  final newPicked = <File>[];
+                  // New Attachments Section
+                  _buildSectionHeader('Add New Photos', '${newPicked.length} added'),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: (keepExisting.length + newPicked.length) >= 5 ? null : () => pickNewImages(setModalState),
+                        icon: const Icon(Icons.add_a_photo_rounded, size: 20),
+                        label: const Text('Select More'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryOrange,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (newPicked.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 100,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: newPicked.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 12),
+                        itemBuilder: (_, i) => _buildImagePreview(newPicked[i], () => setModalState(() => newPicked.removeAt(i))),
+                      ),
+                    ),
+                  ],
+                  
+                  const Divider(height: 40, thickness: 1),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    activeColor: primaryOrange,
+                    value: draft,
+                    onChanged: (v) => setModalState(() => draft = v),
+                    title: const Text('Draft Mode', style: TextStyle(fontWeight: FontWeight.w700)),
+                    secondary: Icon(Icons.auto_fix_high_rounded, color: draft ? primaryOrange : textGray),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Discard', style: TextStyle(color: textGray, fontWeight: FontWeight.bold)),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0, bottom: 8.0),
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryOrange,
+                  foregroundColor: Colors.white,
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+                child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
 
-  Future<void> pickNewImages(StateSetter setModalState) async {
-    final images = await _picker.pickMultiImage(imageQuality: 85);
-    if (images.isEmpty) return;
-
-    // backend max 5 total; enforce total = keepExisting + newPicked <= 5
-    final remaining = 5 - (keepExisting.length + newPicked.length);
-    if (remaining <= 0) return;
-
-    final take = images.take(remaining);
-    newPicked.addAll(take.map((x) => File(x.path)));
-
-    setModalState(() {});
+    if (ok == true) {
+      final keepIds = keepExisting.map((a) => a.id!).toList();
+      await ref.read(dashboardVmProvider.notifier).onUpdatePost(
+            postId: post.id,
+            title: titleCtrl.text.trim().isEmpty ? null : titleCtrl.text.trim(),
+            description: descCtrl.text.trim().isEmpty ? null : descCtrl.text.trim(),
+            content: contentCtrl.text.trim().isEmpty ? null : contentCtrl.text.trim(),
+            asDraft: draft,
+            newAttachments: newPicked,
+            keepExistingAttachmentIds: keepIds,
+          );
+      await ref.read(dashboardVmProvider.notifier).refresh();
+    }
   }
 
-  final ok = await showDialog<bool>(
-    context: context,
-    builder: (_) => StatefulBuilder(
-      builder: (context, setModalState) => AlertDialog(
-        title: const Text('Edit Post'),
-        content: SizedBox(
-          width: double.maxFinite,
-          height: MediaQuery.of(context).size.height * 0.65,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'Title')),
-                TextField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Description')),
-                TextField(
-                  controller: contentCtrl,
-                  decoration: const InputDecoration(labelText: 'Content'),
-                  maxLines: 5,
-                ),
-                const SizedBox(height: 12),
-                SwitchListTile(
-                  value: draft,
-                  onChanged: (v) => setModalState(() => draft = v),
-                  title: const Text('Draft'),
-                ),
-                const SizedBox(height: 12),
+  // --- UI Styling Helpers ---
 
-                // Existing attachments (server)
-                Row(
-                  children: [
-                    const Text('Existing attachments', style: TextStyle(fontWeight: FontWeight.w600)),
-                    const Spacer(),
-                    Text('${keepExisting.length} kept'),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                if (keepExisting.isEmpty)
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text('No existing attachments'),
-                  )
-                else
-                  SizedBox(
-                    height: 90,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: keepExisting.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 8),
-                      itemBuilder: (_, i) {
-                        final att = keepExisting[i];
-                        return Stack(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Image.network(
-                                att.url,
-                                width: 90,
-                                height: 90,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(
-                                  width: 90,
-                                  height: 90,
-                                  color: Colors.grey.shade200,
-                                  alignment: Alignment.center,
-                                  child: const Icon(Icons.broken_image),
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              right: 0,
-                              top: 0,
-                              child: IconButton(
-                                icon: const Icon(Icons.close),
-                                color: Colors.white,
-                                onPressed: () {
-                                  keepExisting.removeAt(i); // removing means "delete on save"
-                                  setModalState(() {});
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
+  Widget _buildStyledField(TextEditingController ctrl, String label, IconData icon, {int maxLines = 1}) {
+    return TextField(
+      controller: ctrl,
+      maxLines: maxLines,
+      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: textGray, fontSize: 13),
+        prefixIcon: Icon(icon, color: primaryOrange, size: 22),
+        filled: true,
+        fillColor: Colors.grey.shade50,
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.grey.shade200)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: primaryOrange, width: 2)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      ),
+    );
+  }
 
-                const SizedBox(height: 16),
+  Widget _buildSectionHeader(String title, String subtitle) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: textDark)),
+        Text(subtitle, style: const TextStyle(color: primaryOrange, fontSize: 12, fontWeight: FontWeight.bold)),
+      ],
+    );
+  }
 
-                // New attachments (local)
-                Row(
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed: (keepExisting.length + newPicked.length) >= 5
-                          ? null
-                          : () => pickNewImages(setModalState),
-                      icon: const Icon(Icons.add_photo_alternate_outlined),
-                      label: Text('Add new (${newPicked.length})'),
-                    ),
-                    const SizedBox(width: 8),
-                    if (newPicked.isNotEmpty)
-                      TextButton(
-                        onPressed: () {
-                          newPicked.clear();
-                          setModalState(() {});
-                        },
-                        child: const Text('Clear new'),
-                      ),
-                    const Spacer(),
-                    Text('Total: ${keepExisting.length + newPicked.length}/5'),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                if (newPicked.isNotEmpty)
-                  SizedBox(
-                    height: 90,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: newPicked.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 8),
-                      itemBuilder: (_, i) => Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.file(
-                              newPicked[i],
-                              width: 90,
-                              height: 90,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          Positioned(
-                            right: 0,
-                            top: 0,
-                            child: IconButton(
-                              icon: const Icon(Icons.close),
-                              color: Colors.white,
-                              onPressed: () {
-                                newPicked.removeAt(i);
-                                setModalState(() {});
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
+  Widget _buildImagePreview(File file, VoidCallback onRemove) {
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Image.file(file, width: 100, height: 100, fit: BoxFit.cover),
+          ),
+        ),
+        Positioned(
+          right: 4,
+          top: 4,
+          child: GestureDetector(
+            onTap: onRemove,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(color: Colors.black.withOpacity(0.6), shape: BoxShape.circle),
+              child: const Icon(Icons.close_rounded, color: Colors.white, size: 16),
             ),
           ),
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Save')),
-        ],
-      ),
-    ),
-  );
-
-  if (ok == true) {
-    final keepIds = keepExisting.map((a) => a.id!).toList();
-
-    await ref.read(dashboardVmProvider.notifier).onUpdatePost(
-          postId: post.id,
-          title: titleCtrl.text.trim().isEmpty ? null : titleCtrl.text.trim(),
-          description: descCtrl.text.trim().isEmpty ? null : descCtrl.text.trim(),
-          content: contentCtrl.text.trim().isEmpty ? null : contentCtrl.text.trim(),
-          asDraft: draft,
-          newAttachments: newPicked, // ✅ add these
-          keepExistingAttachmentIds: keepIds, // ✅ keep these
-        );
-
-        await ref.read(dashboardVmProvider.notifier).refresh();
+      ],
+    );
   }
-}
+
+  Widget _buildNetworkPreview(String url, VoidCallback onRemove) {
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Image.network(
+              url,
+              width: 100,
+              height: 100,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(width: 100, height: 100, color: Colors.grey.shade200, child: const Icon(Icons.broken_image_rounded, color: Colors.grey)),
+            ),
+          ),
+        ),
+        Positioned(
+          right: 4,
+          top: 4,
+          child: GestureDetector(
+            onTap: onRemove,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(color: Colors.black.withOpacity(0.6), shape: BoxShape.circle),
+              child: const Icon(Icons.close_rounded, color: Colors.white, size: 16),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -425,9 +448,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final vm = ref.read(dashboardVmProvider.notifier);
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showCreateDialog,
-        child: const Icon(Icons.add),
+       floatingActionButton: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(colors: [primaryOrange, roseAccent]),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: roseAccent.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))],
+        ),
+        child: FloatingActionButton(
+          onPressed: _showCreateDialog,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: const Icon(Icons.add_rounded, color: Colors.white, size: 30),
+        ),
       ),
       body: Column(
   children: [

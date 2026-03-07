@@ -13,16 +13,18 @@ class ApiEndpoints {
   // Base URLs
   static String get _host {
     if (kIsWeb || Platform.isIOS) return 'localhost';
-    // if (Platform.isAndroid) {
-    //   return _ipAddress;
-    // }
-    if(Platform.isAndroid) return '10.0.2.2';
+    if (Platform.isAndroid) {
+      return _ipAddress;
+    }
+    // if(Platform.isAndroid) return '10.0.2.2';
     return 'localhost';
   }
 
   static String get serverUrl => 'http://$_host:$_port';
   static String get baseUrl => '$serverUrl/api/v1';
   static String get mediaServerUrl => serverUrl;
+
+  static String get alsoServerUrl => 'http://$_host:$_port';
 
     // ===== AUTH (USER) =====
   static const String auth = '/auth';

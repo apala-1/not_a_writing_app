@@ -1,89 +1,117 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:not_a_writing_app/features/dashboard/domain/entities/book_entity.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/chapter_reader_screen.dart';
 
 void main() {
-  testWidgets('renders app bar title, chapter title, and text blocks', (tester) async {
-    final chapter = BookChapterEntity(
-      title: 'Chapter One',
-      content: const [
-        BookContentItemEntity(type: 'text', value: 'Hello world'),
-        BookContentItemEntity(type: 'text', value: 'Second paragraph'),
-      ],
-    );
+  group('ChapterReaderScreen (widget)', () {
+    testWidgets('renders app bar title, chapter label, chapter title and footer',
+        (tester) async {
+      final chapter = BookChapterEntity(
+        title: 'The Beginning',
+        content: const [
+          BookContentItemEntity(type: 'text', value: 'First paragraph.'),
+          BookContentItemEntity(type: 'text', value: 'Second paragraph.'),
+        ],
+      );
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: ChapterReaderScreen(
-          bookTitle: 'My Book',
-          chapterIndex: 0,
-          chapter: chapter,
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChapterReaderScreen(
+            bookTitle: 'My Book',
+            chapterIndex: 0,
+            chapter: chapter,
+          ),
         ),
-      ),
-    );
+      );
 
-    expect(find.text('My Book • Ch 1'), findsOneWidget);
-    expect(find.text('Chapter One'), findsOneWidget);
+      // App bar
+      expect(find.text('Now Reading'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
 
-    expect(find.text('Hello world'), findsOneWidget);
-    expect(find.text('Second paragraph'), findsOneWidget);
-  });
+      // Chapter label and title
+      expect(find.text('CHAPTER 1'), findsOneWidget);
+      expect(find.text('The Beginning'), findsOneWidget);
 
-  testWidgets('renders image blocks as Image.network widgets', (tester) async {
-    final chapter = BookChapterEntity(
-      title: 'Chapter With Image',
-      content: const [
-        BookContentItemEntity(type: 'image', value: 'https://example.com/a.png'),
-        BookContentItemEntity(type: 'text', value: 'after image'),
-      ],
-    );
+      // Book title in metadata row
+      expect(find.text('My Book'), findsOneWidget);
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: ChapterReaderScreen(
-          bookTitle: 'My Book',
-          chapterIndex: 2,
-          chapter: chapter,
+      // Content blocks
+      expect(find.text('First paragraph.'), findsOneWidget);
+      expect(find.text('Second paragraph.'), findsOneWidget);
+
+      // Footer
+      expect(find.text('End of Chapter'), findsOneWidget);
+      expect(find.text('Thank you for reading My Book'), findsOneWidget);
+
+      // Footer icon
+      expect(find.byIcon(LucideIcons.bookOpenCheck), findsOneWidget);
+    });
+
+    testWidgets('shows imageOff fallback when Image.network fails',
+        (tester) async {
+      final chapter = BookChapterEntity(
+        title: 'With Image',
+        content: const [
+          BookContentItemEntity(type: 'image', value: '/uploads/posts/some.jpg'),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChapterReaderScreen(
+            bookTitle: 'My Book',
+            chapterIndex: 1,
+            chapter: chapter,
+          ),
         ),
-      ),
-    );
+      );
 
-    expect(find.text('My Book • Ch 3'), findsOneWidget);
-    expect(find.text('Chapter With Image'), findsOneWidget);
+      // Let Image.network attempt to resolve and fail in test environment.
+      // Two pumps: one for first frame, one for async image error to hit errorBuilder.
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
-    // One Image widget from Image.network
-    expect(find.byType(Image), findsOneWidget);
+      // errorBuilder should show this icon.
+      expect(find.byIcon(LucideIcons.imageOff), findsOneWidget);
 
-    // Still shows text after image
-    expect(find.text('after image'), findsOneWidget);
-  });
+      // Caption below the image block
+      expect(find.text('Illustration for With Image'), findsOneWidget);
+    });
 
-  testWidgets('image widget shows broken_image icon when image fails to load', (tester) async {
-    // We can't (and shouldn't) do real network in widget tests.
-    // Use a clearly-invalid URL so Image.network will fail and errorBuilder is used.
-    final chapter = BookChapterEntity(
-      title: 'Broken Image',
-      content: const [
-        BookContentItemEntity(type: 'image', value: 'http://invalid.invalid/notfound.png'),
-      ],
-    );
+    testWidgets('renders both text and image content blocks in order',
+        (tester) async {
+      final chapter = BookChapterEntity(
+        title: 'Mixed',
+        content: const [
+          BookContentItemEntity(type: 'text', value: 'Before image'),
+          BookContentItemEntity(type: 'image', value: '/uploads/posts/a.jpg'),
+          BookContentItemEntity(type: 'text', value: 'After image'),
+        ],
+      );
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: ChapterReaderScreen(
-          bookTitle: 'My Book',
-          chapterIndex: 0,
-          chapter: chapter,
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChapterReaderScreen(
+            bookTitle: 'My Book',
+            chapterIndex: 2,
+            chapter: chapter,
+          ),
         ),
-      ),
-    );
+      );
 
-    // Let image attempt resolve and error.
-    // (In widget tests, the network image will typically fail quickly.)
-    await tester.pumpAndSettle(const Duration(seconds: 1));
+      // Text blocks appear
+      expect(find.text('Before image'), findsOneWidget);
+      expect(find.text('After image'), findsOneWidget);
 
-    expect(find.byIcon(Icons.broken_image), findsOneWidget);
+      // Image caption appears (even if image fails, caption still renders)
+      expect(find.text('Illustration for Mixed'), findsOneWidget);
+
+      // Force image to fail and show fallback
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byIcon(LucideIcons.imageOff), findsOneWidget);
+    });
   });
 }
