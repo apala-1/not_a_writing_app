@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:mocktail/mocktail.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/view_model/dashboard_viewmodel.dart';
+import 'package:not_a_writing_app/features/posts/data/cache/dashboard_feed_cache.dart';
+import 'package:not_a_writing_app/features/posts/data/models/post_hive_model.dart';
 import 'package:test/test.dart';
 
 import 'package:not_a_writing_app/features/dashboard/presentation/state/dashboard_state.dart';
@@ -25,6 +27,8 @@ class _MockToggleLikeUsecase extends Mock implements ToggleLikeUsecase {}
 
 class _MockToggleSaveUsecase extends Mock implements ToggleSaveUsecase {}
 
+class _MockDashboardFeedCache extends Mock implements DashboardFeedCache {}
+
 class _FakeFile extends Fake implements File {}
 
 void main() {
@@ -34,6 +38,7 @@ void main() {
   late DeletePostUsecase deletePost;
   late ToggleLikeUsecase toggleLike;
   late ToggleSaveUsecase toggleSave;
+  late DashboardFeedCache cache;
 
   late DashboardViewModel vm;
 
@@ -64,22 +69,28 @@ void main() {
   }
 
   setUp(() {
-    getAllPosts = _MockGetAllPostsUsecase();
-    createPost = _MockCreatePostUsecase();
-    updatePost = _MockUpdatePostUsecase();
-    deletePost = _MockDeletePostUsecase();
-    toggleLike = _MockToggleLikeUsecase();
-    toggleSave = _MockToggleSaveUsecase();
+  getAllPosts = _MockGetAllPostsUsecase();
+  createPost = _MockCreatePostUsecase();
+  updatePost = _MockUpdatePostUsecase();
+  deletePost = _MockDeletePostUsecase();
+  toggleLike = _MockToggleLikeUsecase();
+  toggleSave = _MockToggleSaveUsecase();
+  cache = _MockDashboardFeedCache();
 
-    vm = DashboardViewModel(
-      getAllPosts: getAllPosts,
-      createPost: createPost,
-      updatePost: updatePost,
-      deletePost: deletePost,
-      toggleLike: toggleLike,
-      toggleSave: toggleSave,
-    );
-  });
+  // IMPORTANT: stub async cache methods (otherwise mocktail returns null)
+  when(() => cache.readPosts()).thenAnswer((_) async => <PostHive>[]);
+  when(() => cache.writePosts(any())).thenAnswer((_) async {});
+
+  vm = DashboardViewModel(
+    getAllPosts: getAllPosts,
+    createPost: createPost,
+    updatePost: updatePost,
+    deletePost: deletePost,
+    toggleLike: toggleLike,
+    toggleSave: toggleSave,
+    cache: cache,
+  );
+});
 
   test('initial state is DashboardState.initial()', () {
     expect(vm.state, DashboardState.initial());

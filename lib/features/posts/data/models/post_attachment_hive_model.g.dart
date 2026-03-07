@@ -1,44 +1,38 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'auth_hive_model.dart';
+part of 'post_attachment_hive_model.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class AuthHiveModelAdapter extends TypeAdapter<AuthHiveModel> {
+class PostAttachmentHiveAdapter extends TypeAdapter<PostAttachmentHive> {
   @override
-  final int typeId = 2;
+  final int typeId = 31;
 
   @override
-  AuthHiveModel read(BinaryReader reader) {
+  PostAttachmentHive read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return AuthHiveModel(
-      name: fields[1] as String,
-      email: fields[2] as String,
-      password: fields[3] as String?,
-      authId: fields[0] as String?,
-      token: fields[4] as String?,
+    return PostAttachmentHive(
+      id: fields[0] as String?,
+      url: fields[1] as String,
+      type: fields[2] as String,
     );
   }
 
   @override
-  void write(BinaryWriter writer, AuthHiveModel obj) {
+  void write(BinaryWriter writer, PostAttachmentHive obj) {
     writer
-      ..writeByte(5)
-      ..writeByte(0)
-      ..write(obj.authId)
-      ..writeByte(1)
-      ..write(obj.name)
-      ..writeByte(2)
-      ..write(obj.email)
       ..writeByte(3)
-      ..write(obj.password)
-      ..writeByte(4)
-      ..write(obj.token);
+      ..writeByte(0)
+      ..write(obj.id)
+      ..writeByte(1)
+      ..write(obj.url)
+      ..writeByte(2)
+      ..write(obj.type);
   }
 
   @override
@@ -47,7 +41,7 @@ class AuthHiveModelAdapter extends TypeAdapter<AuthHiveModel> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is AuthHiveModelAdapter &&
+      other is PostAttachmentHiveAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

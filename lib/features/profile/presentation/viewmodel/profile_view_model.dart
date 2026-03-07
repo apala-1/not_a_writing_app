@@ -2,11 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
 import 'package:not_a_writing_app/features/dashboard/domain/entities/comment_entity.dart';
+import 'package:not_a_writing_app/features/profile/data/cache/profile_cache.dart';
+import 'package:not_a_writing_app/features/profile/data/cache/profile_hive_mapper.dart';
 import 'package:not_a_writing_app/features/profile/domain/entities/profile_entity.dart';
 import 'package:not_a_writing_app/features/profile/domain/usecases/get_profile_by_id_usecase.dart';
 import 'package:not_a_writing_app/features/profile/domain/usecases/get_profile_usecase.dart';
 import 'package:not_a_writing_app/features/profile/domain/usecases/update_user_usecase.dart';
 import 'package:not_a_writing_app/features/profile/domain/usecases/upload_image_usecase.dart';
+import 'package:not_a_writing_app/features/profile/presentation/providers/profile_cache_providers.dart';
 import 'package:not_a_writing_app/features/profile/presentation/state/profile_state.dart';
 
 final profileViewmodelProvider =
@@ -108,33 +111,48 @@ void clearPickedImage() {
 }
 
 Future<void> fetchFullProfile(String userId) async {
-  state = state.copyWith(status: ProfileStatus.loading);
+  final ProfileCache cache = ref.read(profileCacheProvider);
 
-  try {
-    final profileResult = await _getProfileByIdUsecase(userId);
-    print('FULL PROFILE RAW: ${profileResult}');
+  // 1) Load cache first (if any)
+  final cached = await cache.readByUserId(userId);
+  if (cached != null) {
+    state = state.copyWith(
+      status: ProfileStatus.loaded,
+      profileEntity: profileFromHive(cached),
+      errorMessage: null,
+    );
+  } else {
+    state = state.copyWith(status: ProfileStatus.loading, errorMessage: null);
+  }
 
-    profileResult.fold(
-      (failure) {
+  // 2) Network
+  final result = await _getProfileByIdUsecase(userId);
+
+  result.fold(
+    (failure) {
+      // If we already have cached data, keep showing it
+      if (state.profileEntity != null) {
+        state = state.copyWith(
+          status: ProfileStatus.loaded,
+          errorMessage: 'Offline. Showing cached profile.',
+        );
+      } else {
         state = state.copyWith(
           status: ProfileStatus.error,
           errorMessage: failure.message,
         );
-      },
-      (profile) {
-        state = state.copyWith(
-          status: ProfileStatus.loaded,
-          profileEntity: profile,
-        );
-        print('Profile Posts Count: ${profile.postsCount}');
-      },
-    );
-  } catch (e) {
-    state = state.copyWith(
-      status: ProfileStatus.error,
-      errorMessage: e.toString(),
-    );
-  }
+      }
+    },
+    (profile) async {
+      state = state.copyWith(
+        status: ProfileStatus.loaded,
+        profileEntity: profile,
+        errorMessage: null,
+      );
+
+      await cache.write(profileToHive(profile));
+    },
+  );
 }
 
 Future<void> pickProfileImage() async {

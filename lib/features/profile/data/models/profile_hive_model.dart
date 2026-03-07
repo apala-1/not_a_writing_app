@@ -1,40 +1,45 @@
 import 'package:hive/hive.dart';
-import 'package:not_a_writing_app/features/profile/domain/entities/profile_entity.dart';
 
 part 'profile_hive_model.g.dart';
 
-@HiveType(typeId: 1)
-class ProfileHiveModel extends HiveObject {
+@HiveType(typeId: 40)
+class ProfileHiveModel {
   @HiveField(0)
-  String id;
+  final String id;
 
   @HiveField(1)
-  String name;
+  final String name;
 
   @HiveField(2)
-  String email;
+  final String email;
 
   @HiveField(3)
-  String profilePicture;
+  final String profilePicture;
 
   @HiveField(4)
-  String bio;
+  final String occupation;
 
   @HiveField(5)
-  String occupation;
+  final String bio;
 
   @HiveField(6)
-  int postsCount;
+  final int postsCount;
 
-  ProfileHiveModel({
+  @HiveField(7)
+  final String? token;
+
+  @HiveField(8)
+  final int cachedAtMillis;
+
+  const ProfileHiveModel({
     required this.id,
     required this.name,
     required this.email,
     required this.profilePicture,
+    required this.occupation,
     required this.bio,
     required this.postsCount,
-    required this.occupation,
+    required this.token,
+    required this.cachedAtMillis,
   });
-
-  ProfileEntity toEntity() => ProfileEntity(id: id, name: name, email: email, profilePicture: profilePicture, occupation: occupation, bio: bio, postsCount: postsCount);
 }

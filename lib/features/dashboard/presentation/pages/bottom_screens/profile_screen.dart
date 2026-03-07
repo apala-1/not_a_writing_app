@@ -55,9 +55,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           const SizedBox(height: 16),
           Text(message ?? 'Something went wrong', style: const TextStyle(color: textGray)),
           TextButton(
-            onPressed: () => setState(() {}),
-            child: const Text('Retry', style: TextStyle(color: primaryOrange)),
-          )
+  onPressed: () {
+    final userId = ref.read(userSessionServiceProvider).getUserId();
+    if (userId != null) {
+      ref.read(profileViewmodelProvider.notifier).fetchFullProfile(userId);
+    }
+  },
+  child: const Text('Retry', style: TextStyle(color: primaryOrange)),
+)
         ],
       ),
     );

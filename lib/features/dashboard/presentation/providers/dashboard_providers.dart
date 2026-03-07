@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:not_a_writing_app/core/api/api_client.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/providers/dashboard_cache_providers.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/state/dashboard_state.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/view_model/dashboard_viewmodel.dart';
 import 'package:not_a_writing_app/features/posts/data/datasources/remote/post_remote_datasource.dart';
@@ -40,5 +41,6 @@ final dashboardVmProvider = StateNotifierProvider<DashboardViewModel, DashboardS
     deletePost: ref.read(deletePostUcProvider),
     toggleLike: ref.read(toggleLikeUcProvider),
     toggleSave: ref.read(toggleSaveUcProvider),
+    cache: ref.read(dashboardFeedCacheProvider),
   )..refresh();
 });

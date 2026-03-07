@@ -1,44 +1,38 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'auth_hive_model.dart';
+part of 'post_author_hive_model.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class AuthHiveModelAdapter extends TypeAdapter<AuthHiveModel> {
+class PostAuthorHiveAdapter extends TypeAdapter<PostAuthorHive> {
   @override
-  final int typeId = 2;
+  final int typeId = 30;
 
   @override
-  AuthHiveModel read(BinaryReader reader) {
+  PostAuthorHive read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return AuthHiveModel(
+    return PostAuthorHive(
+      id: fields[0] as String,
       name: fields[1] as String,
-      email: fields[2] as String,
-      password: fields[3] as String?,
-      authId: fields[0] as String?,
-      token: fields[4] as String?,
+      profilePictureUrl: fields[2] as String?,
     );
   }
 
   @override
-  void write(BinaryWriter writer, AuthHiveModel obj) {
+  void write(BinaryWriter writer, PostAuthorHive obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(3)
       ..writeByte(0)
-      ..write(obj.authId)
+      ..write(obj.id)
       ..writeByte(1)
       ..write(obj.name)
       ..writeByte(2)
-      ..write(obj.email)
-      ..writeByte(3)
-      ..write(obj.password)
-      ..writeByte(4)
-      ..write(obj.token);
+      ..write(obj.profilePictureUrl);
   }
 
   @override
@@ -47,7 +41,7 @@ class AuthHiveModelAdapter extends TypeAdapter<AuthHiveModel> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is AuthHiveModelAdapter &&
+      other is PostAuthorHiveAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

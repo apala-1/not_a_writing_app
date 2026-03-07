@@ -13,10 +13,10 @@ class ApiEndpoints {
   // Base URLs
   static String get _host {
     if (kIsWeb || Platform.isIOS) return 'localhost';
-    if (Platform.isAndroid) {
-      return _ipAddress;
-    }
-    // if(Platform.isAndroid) return '10.0.2.2';
+    // if (Platform.isAndroid) {
+    //   return _ipAddress;
+    // }
+    if(Platform.isAndroid) return '10.0.2.2';
     return 'localhost';
   }
 
