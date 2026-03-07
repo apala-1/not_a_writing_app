@@ -1,83 +1,100 @@
-import 'dart:async';
+import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:not_a_writing_app/core/api/api_client.dart';
 import 'package:not_a_writing_app/core/api/api_endpoints.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:not_a_writing_app/features/dashboard/data/models/chat_api_model.dart';
+import 'package:not_a_writing_app/features/dashboard/data/models/conversation_api_model.dart';
 
-/// Provide a Dio instance (you can also configure base options here)
-final dioProvider = Provider<Dio>((ref) {
-  return Dio();
-});
+abstract class ChatsRemoteDataSource {
+  Future<List<ConversationApiModel>> getMyConversations();
+  Future<List<ChatApiModel>> getConversation(String userA, String userB);
 
-/// Provide ChatRemoteDataSource as a singleton
-final chatRemoteDataSourceProvider = Provider<ChatRemoteDataSource>((ref) {
-  final dio = ref.read(dioProvider);
-  return ChatRemoteDataSource(dio);
-});
+  Future<ChatApiModel> sendText({required String receiverId, required String message});
+  Future<ChatApiModel> sendImage({required String receiverId, required File file});
 
-class ChatRemoteDataSource {
-  final Dio dio;
-  late IO.Socket socket;
-  final _controller = StreamController<Map<String, dynamic>>.broadcast();
+  Future<ChatApiModel> editMessage({required String messageId, required String content});
+  Future<void> deleteMessage(String messageId);
 
-  ChatRemoteDataSource(this.dio);
-
-  /// Fetch chat history from backend
-  Future<List<Map<String, dynamic>>> getMessages(
-      String myId, String receiverId, String token) async {
-        print('${ApiEndpoints.baseUrl}${ApiEndpoints.getConversation(myId, receiverId)}');
-    final res = await dio.get(
-      '${ApiEndpoints.baseUrl}${ApiEndpoints.getConversation(myId, receiverId)}',
-      options: Options(headers: {'Authorization': 'Bearer $token'}),
-    );
-    print('Res data: ${res.data}');
-    return List<Map<String, dynamic>>.from(res.data['data']);
-  }
-
-  /// Send message to backend
-  Future<void> sendMessage(
-    String sender, String receiver, String message, String token) async {
-  if (token.isEmpty) {
-    print('No token found! Cannot send message');
-    return;
-  }
-
-  final url = '${ApiEndpoints.baseUrl}${ApiEndpoints.sendMessage()}';
-  print('Sending message to $url with token: $token');
-
-  await dio.post(
-    url,
-    data: {'receiverId': receiver, 'message': message},
-    options: Options(headers: {'Authorization': 'Bearer $token'}),
-  );
+  Future<void> markAsRead({required String senderId});
 }
 
-  /// Socket: connect for real-time updates
-  Future<void> connect(String myId, String token) async {
-    socket = IO.io(
-      ApiEndpoints.baseUrl.replaceFirst('http', 'ws'), // ws:// or wss://
-      IO.OptionBuilder()
-          .setTransports(['websocket'])
-          .setQuery({'token': token, 'userId': myId})
-          .disableAutoConnect()
-          .build(),
-    );
+class ChatsRemoteDataSourceImpl implements ChatsRemoteDataSource {
+  final ApiClient api;
+  ChatsRemoteDataSourceImpl(this.api);
 
-    socket.connect();
-
-    socket.onConnect((_) => print('Socket connected'));
-    socket.on('receive_message', (data) {
-      _controller.add(Map<String, dynamic>.from(data));
-    });
-    socket.onDisconnect((_) => print('Socket disconnected'));
+  dynamic _unwrap(Response res) {
+    final body = res.data;
+    if (body is Map<String, dynamic> && body.containsKey('data')) return body['data'];
+    return body;
   }
 
-  /// Stream to listen for incoming messages
-  Stream<Map<String, dynamic>> onMessageReceived() => _controller.stream;
+  @override
+  Future<List<ConversationApiModel>> getMyConversations() async {
+    final res = await api.dio.get(ApiEndpoints.getConversations());
+    final data = _unwrap(res);
+    final list = (data as List).cast<Map<String, dynamic>>();
+    return list.map(ConversationApiModel.fromJson).toList();
+  }
 
-  /// Disconnect socket
-  void disconnect() {
-    socket.dispose();
-    _controller.close();
+  @override
+  Future<List<ChatApiModel>> getConversation(String userA, String userB) async {
+    final res = await api.dio.get(ApiEndpoints.getConversation(userA, userB));
+    final data = _unwrap(res);
+    final list = (data as List).cast<Map<String, dynamic>>();
+    return list.map(ChatApiModel.fromJson).toList();
+  }
+
+  @override
+  Future<ChatApiModel> sendText({required String receiverId, required String message}) async {
+    final form = FormData.fromMap({
+      'receiverId': receiverId,
+      'message': message,
+    });
+
+    final res = await api.dio.post(
+      ApiEndpoints.sendChat(),
+      data: form,
+      options: Options(contentType: 'multipart/form-data'),
+    );
+
+    final data = _unwrap(res) as Map<String, dynamic>;
+    return ChatApiModel.fromJson(data);
+  }
+
+  @override
+  Future<ChatApiModel> sendImage({required String receiverId, required File file}) async {
+    final form = FormData.fromMap({
+      'receiverId': receiverId,
+      'file': await MultipartFile.fromFile(file.path, filename: file.uri.pathSegments.last),
+    });
+
+    final res = await api.dio.post(
+      ApiEndpoints.sendChat(),
+      data: form,
+      options: Options(contentType: 'multipart/form-data'),
+    );
+
+    final data = _unwrap(res) as Map<String, dynamic>;
+    return ChatApiModel.fromJson(data);
+  }
+
+  @override
+  Future<ChatApiModel> editMessage({required String messageId, required String content}) async {
+    final res = await api.dio.put(
+      ApiEndpoints.editChat(messageId),
+      data: {'content': content},
+    );
+    final data = _unwrap(res) as Map<String, dynamic>;
+    return ChatApiModel.fromJson(data);
+  }
+
+  @override
+  Future<void> deleteMessage(String messageId) async {
+    await api.dio.delete(ApiEndpoints.deleteChat(messageId));
+  }
+
+  @override
+  Future<void> markAsRead({required String senderId}) async {
+    await api.dio.post(ApiEndpoints.markChatAsRead(), data: {'senderId': senderId});
   }
 }

@@ -1,27 +1,22 @@
-import 'package:uuid/uuid.dart';
-
 class ChatEntity {
   final String id;
-  final String sender;
-  final String receiver;
-  final String message;
-  final DateTime createdAt;
+  final String senderId;
+  final String receiverId;
 
-  ChatEntity({
+  final String type; // "text" | "image"
+  final String content; // text or "/uploads/chats/.."
+  final bool read;
+  final DateTime? createdAt;
+
+  const ChatEntity({
     required this.id,
-    required this.sender,
-    required this.receiver,
-    required this.message,
+    required this.senderId,
+    required this.receiverId,
+    required this.type,
+    required this.content,
+    required this.read,
     required this.createdAt,
   });
 
-  factory ChatEntity.fromJson(Map<String, dynamic> json) {
-  return ChatEntity(
-    id: json['_id'] ?? const Uuid().v4(),
-    sender: json['senderId'] ?? '',
-    receiver: json['receiverId'] ?? '',
-    message: json['message'] ?? '',
-    createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : DateTime.now(),
-  );
-}
+  bool get isImage => type == 'image';
 }

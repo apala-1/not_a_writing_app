@@ -16,11 +16,28 @@ class _ViewMessagesScreenState extends State<ViewMessagesScreen> {
   List users = [];
   bool loading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    fetchMutualUsers();
-  }
+ @override
+void initState() {
+  super.initState();
+  fetchMutualUsers().then((_) => fetchUnreadCounts());
+}
+
+  Map<String, int> unreadByUserId = {};
+
+Future<void> fetchUnreadCounts() async {
+  final sharedPrefs = await SharedPreferences.getInstance();
+  final userSessionService = UserSessionService(prefs: sharedPrefs);
+  final apiClient = ApiClient(userSessionService);
+
+  final res = await apiClient.get("${ApiEndpoints.baseUrl}/chat/unread-counts");
+  final list = (res.data['data'] as List).cast<Map<String, dynamic>>();
+
+  setState(() {
+    unreadByUserId = {
+      for (final row in list) row['_id'].toString(): (row['unreadCount'] as num).toInt()
+    };
+  });
+}
 
   Future<void> fetchMutualUsers() async {
     setState(() => loading = true);
@@ -41,26 +58,22 @@ class _ViewMessagesScreenState extends State<ViewMessagesScreen> {
     });
   }
 
-  void _navigateToChatScreen(
-      String userId, String receiverName) async {
+  Future<void> _navigateToChatScreen(String userId, String receiverName) async {
+  final sharedPrefs = await SharedPreferences.getInstance();
+  final userSessionService = UserSessionService(prefs: sharedPrefs);
+  final myId = userSessionService.getUserId();
 
-    final sharedPrefs = await SharedPreferences.getInstance();
-    final userSessionService =
-        UserSessionService(prefs: sharedPrefs);
-
-    final myId = userSessionService.getUserId();
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ChatScreen(
-          receiverId: userId,
-          receiverName: receiverName,
-          myId: myId!,
-        ),
+  await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => ChatScreen(
+        myUserId: myId!,
+        otherUserId: userId,
+        otherName: receiverName,
       ),
-    );
-  }
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -73,17 +86,35 @@ class _ViewMessagesScreenState extends State<ViewMessagesScreen> {
                 final user = users[index];
 
                 return ListTile(
-                  onTap: () => _navigateToChatScreen(
-                    user['_id'],
-                    user['name'],
-                  ),
-                  leading: CircleAvatar(
-                    backgroundImage: NetworkImage(
-                      "${ApiEndpoints.serverUrl}/uploads/${user['profilePicture']}",
-                    ),
-                  ),
-                  title: Text(user['name']),
-                );
+  onTap: () async {
+    await _navigateToChatScreen(user['_id'], user['name']);
+    await fetchUnreadCounts(); // ✅ refresh badge after returning
+  },
+  leading: Stack(
+    children: [
+      CircleAvatar(
+        backgroundImage: NetworkImage("${ApiEndpoints.serverUrl}/uploads/${user['profilePicture']}"),
+      ),
+      if ((unreadByUserId[user['_id']] ?? 0) > 0)
+        Positioned(
+          right: 0,
+          bottom: 0,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.red,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              '${unreadByUserId[user['_id']]!}',
+              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+    ],
+  ),
+  title: Text(user['name']),
+);
               },
             ),
     );

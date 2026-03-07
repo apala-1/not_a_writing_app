@@ -84,9 +84,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     context,
                     MaterialPageRoute(
                       builder: (_) => ChatScreen(
-                        myId: myId!, // now accessible
-                        receiverId: widget.userId,
-                        receiverName: userDetails?['name'] ?? '',
+                        myUserId: myId!,
+                        otherUserId: widget.userId,
+                        otherName: userDetails?['name'] ?? 'Chat',
                       ),
                     ),
                   );

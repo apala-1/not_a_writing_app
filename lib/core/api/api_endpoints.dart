@@ -163,14 +163,18 @@ static String canMessage(String userA, String userB) =>
 static String searchUsers(String query) =>
     '/follow/search?q=$query';
 
-// ===== CHAT =====
-static const String chat = '/chat';
+// ===== CHATS =====
+static const String chats = '/chat';
 
-// POST /chat/send
-static String sendMessage() => '$chat/send';
+static String sendChat() => '$chats/send';
+static String getConversations() => '$chats/conversations';
+static String getConversation(String userA, String userB) => '$chats/conversation/$userA/$userB';
 
-// GET /chat/conversation/:userA/:userB
-static String getConversation(String userA, String userB) => '$chat/conversation/$userA/$userB';
+static String editChat(String id) => '$chats/edit/$id';
+static String deleteChat(String id) => '$chats/delete/$id';
+
+static String markChatAsRead() => '$chats/mark-as-read';
+static String unreadCounts() => '$chats/unread-counts';
 
 // ===== BOOKS =====
 static const String books = '/book';

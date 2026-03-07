@@ -1,15 +1,21 @@
 import 'package:not_a_writing_app/features/dashboard/domain/entities/chat_entity.dart';
 
 class ChatState {
-  final List<ChatEntity> messages;
   final bool loading;
+  final String? error;
+  final List<ChatEntity> messages;
 
-  ChatState({required this.messages, required this.loading});
-
-  ChatState copyWith({List<ChatEntity>? messages, bool? loading}) {
-    return ChatState(
-      messages: messages ?? this.messages,
-      loading: loading ?? this.loading,
-    );
-  }
+  const ChatState({required this.loading, required this.messages, this.error});
+  factory ChatState.initial() => const ChatState(loading: false, messages: []);
+  ChatState copyWith({
+  bool? loading,
+  String? error,
+  List<ChatEntity>? messages,
+}) {
+  return ChatState(
+    loading: loading ?? this.loading,
+    error: error,
+    messages: messages ?? this.messages,
+  );
+}
 }

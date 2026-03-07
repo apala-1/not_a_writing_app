@@ -1,70 +1,113 @@
-import 'dart:async';
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
-import 'package:not_a_writing_app/features/dashboard/data/datasources/remote/chat_remote_datasource.dart';
-import 'package:not_a_writing_app/features/dashboard/domain/entities/chat_entity.dart';
-import 'package:not_a_writing_app/features/dashboard/domain/repositories/chat_repository_impl.dart';
+import 'package:not_a_writing_app/features/dashboard/data/models/chat_api_model.dart';
+import 'package:not_a_writing_app/features/dashboard/domain/repositories/chat_repository.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/state/chat_state.dart';
-import 'package:uuid/uuid.dart';
+import '../../domain/entities/chat_entity.dart';
+import 'chat_vm_args.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
-final chatViewModelProvider =
-    StateNotifierProvider<ChatViewModel, ChatState>((ref) {
-  final repo = ChatRepositoryImpl(ref.read(chatRemoteDataSourceProvider));
-  final token = ref.read(userSessionServiceProvider).getUserToken() ?? '';
-  final senderId = ref.read(userSessionServiceProvider).getUserId() ?? 'unknown';
-  return ChatViewModel(repo, token);
-});
 
-class ChatViewModel extends StateNotifier<ChatState> {
-  final ChatRepositoryImpl repo;
-  final String token;
-  
-  StreamSubscription<ChatEntity>? _sub;
+class ChatVm extends StateNotifier<ChatState> {
+  final ChatsRepository repo;
+  final ChatVmArgs args;
+  IO.Socket? _socket;
 
-  ChatViewModel(this.repo, this.token) : super(ChatState(messages: [], loading: false));
+  ChatVm({required this.repo, required this.args}) : super(ChatState.initial());
 
-  Future<void> initialize(String myId, String receiverId) async {
-    // Connect socket
-    await repo.connect(myId, token);
-    print('{myId: $myId, token: $token}');
-
-    // Fetch history
-    state = state.copyWith(loading: true);
-    final history = await repo.getMessages(myId, receiverId, token);
-    state = state.copyWith(messages: history, loading: false);
-
-    // Listen for new messages
-    _sub = repo.onMessageReceived().listen((message) {
-      state = state.copyWith(messages: [...state.messages, message]);
-    });
-  }
-
-void sendMessage(String sender, String receiver, String message) async {
-  // Create local ChatEntity
-  final newMessage = ChatEntity(
-    id: const Uuid().v4(),
-    sender: sender,
-    receiver: receiver,
-    message: message,
-    createdAt: DateTime.now(),
-  );
-  print('Sender in vm: $sender, Receiver: $receiver, Message: $message , Token: $token');
-
-  // Add it to state so UI updates immediately
-  state = state.copyWith(messages: [...state.messages, newMessage]);
+ Future<void> load() async {
+  state = state.copyWith(loading: true, error: null);
 
   try {
-    await repo.sendMessage(sender, receiver, message, token);
+    final data = await repo.getConversation(args.myUserId, args.otherUserId);
+
+    // ✅ stop spinner as soon as messages are fetched
+    state = state.copyWith(loading: false, messages: data);
+
+    // ✅ mark-as-read should NOT block UI
+    try {
+      await repo.markAsRead(senderId: args.otherUserId);
+    } catch (_) {
+      // ignore or log; don't re-enter loading
+    }
   } catch (e) {
-    print('Error sending message: $e');
+    state = state.copyWith(loading: false, error: e.toString());
   }
 }
 
-  @override
-  void dispose() {
-    _sub?.cancel();
-    repo.disconnect();
-    super.dispose();
+ Future<void> sendText(String text) async {
+  if (text.trim().isEmpty) return;
+  try {
+    await repo.sendText(receiverId: args.otherUserId, message: text.trim());
+    // ✅ don't append here, socket will bring it (or reload)
+    await load(); // optional fallback if socket doesn't arrive
+  } catch (e) {
+    state = state.copyWith(error: e.toString());
+  }
+}
+
+Future<void> sendImage(File file) async {
+  try {
+    await repo.sendImage(receiverId: args.otherUserId, file: file);
+    // ✅ don't append here
+    await load(); // optional fallback
+  } catch (e) {
+    state = state.copyWith(error: e.toString());
+  }
+}
+
+
+void attachSocket(IO.Socket socket) {
+  _socket = socket;
+
+  socket.off('chat:new');
+  socket.off('chat:edited');
+  socket.off('chat:deleted');
+
+  socket.on('chat:new', (data) {
+    // data is a map (json) from backend
+    final msg = ChatApiModel.fromJson(Map<String, dynamic>.from(data)).toEntity();
+
+    final isThisConversation =
+        (msg.senderId == args.myUserId && msg.receiverId == args.otherUserId) ||
+        (msg.senderId == args.otherUserId && msg.receiverId == args.myUserId);
+
+    if (!isThisConversation) return;
+    if (state.messages.any((m) => m.id == msg.id)) return;
+
+   state = state.copyWith(messages: [...state.messages, msg]);
+  });
+
+  socket.on('chat:edited', (data) {
+    final msg = ChatApiModel.fromJson(Map<String, dynamic>.from(data)).toEntity();
+    state = state.copyWith(
+      messages: state.messages.map((m) => m.id == msg.id ? msg : m).toList(),
+    );
+  });
+
+  socket.on('chat:deleted', (data) {
+    final id = (data as Map)['id'].toString();
+    state = state.copyWith(messages: state.messages.where((m) => m.id != id).toList());
+  });
+}
+
+  Future<void> editMessage(String id, String content) async {
+    try {
+      final updated = await repo.editMessage(messageId: id, content: content);
+      final next = state.messages.map((m) => m.id == id ? updated : m).toList();
+      state = state.copyWith(messages: next);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
+  Future<void> deleteMessage(String id) async {
+    try {
+      await repo.deleteMessage(id);
+      state = state.copyWith(messages: state.messages.where((m) => m.id != id).toList());
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
   }
 }
