@@ -27,6 +27,10 @@ class ProfileViewmodel extends Notifier<ProfileState> {
     return const ProfileState();
   }
 
+  void reset() {
+  state = const ProfileState();
+}
+
    Future<void> fetchProfile() async {
     state = state.copyWith(status: ProfileStatus.loading);
 
@@ -69,6 +73,10 @@ class ProfileViewmodel extends Notifier<ProfileState> {
   );
 }
 
+void clearPickedImage() {
+  state = state.copyWith(pickedImage: null);
+}
+
 
  Future<void> updateProfile(UpdateProfileParams params) async {
   state = state.copyWith(status: ProfileStatus.loading);
@@ -94,8 +102,7 @@ class ProfileViewmodel extends Notifier<ProfileState> {
         status: ProfileStatus.loaded,
       );
 
-      // optional but recommended
-      await fetchProfile();
+      await fetchFullProfile(params.userId);
     },
   );
 }

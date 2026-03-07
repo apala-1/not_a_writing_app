@@ -24,6 +24,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
+     Future.microtask(() {
+    ref.read(profileViewmodelProvider.notifier).clearPickedImage();
+  });
     final profile = ref.read(profileViewmodelProvider).profileEntity;
 
     nameCtrl = TextEditingController(text: profile?.name ?? '');
@@ -34,6 +37,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   @override
   void dispose() {
     nameCtrl.dispose();
+      ref.read(profileViewmodelProvider.notifier).clearPickedImage();
     bioCtrl.dispose();
     occupationCtrl.dispose();
     super.dispose();
