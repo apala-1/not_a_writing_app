@@ -24,3 +24,15 @@ class ApiFailure extends Failure {
   }) : super(message);
   
 }
+
+class ServerFailure extends Failure {
+  const ServerFailure({required String message}) : super(message);
+}
+
+class CacheFailure extends Failure {
+  const CacheFailure({required String message}) : super(message);
+}
+
+class ValidationFailure extends Failure {
+  const ValidationFailure({required String message}) : super(message);
+}
