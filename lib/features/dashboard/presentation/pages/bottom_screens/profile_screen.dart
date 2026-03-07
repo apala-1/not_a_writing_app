@@ -103,7 +103,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             profile!.profilePicture.isNotEmpty &&
                             profile.profilePicture != 'default-picture.png')
                         ? NetworkImage('${ApiEndpoints.mediaServerUrl}/uploads/profiles/${profile.profilePicture}')
-                        : null,
+                        : NetworkImage('${ApiEndpoints.mediaServerUrl}/uploads/profiles/default-picture.png'),
+                    
                     child: (profile?.profilePicture == null || profile!.profilePicture.isEmpty)
                         ? const Icon(Icons.person, size: 60, color: textGray)
                         : null,
