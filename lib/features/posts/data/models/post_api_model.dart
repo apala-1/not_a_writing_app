@@ -1,152 +1,168 @@
-import 'package:not_a_writing_app/features/posts/domain/entities/attachment_entity.dart';
+import 'package:not_a_writing_app/core/api/api_endpoints.dart';
 import 'package:not_a_writing_app/features/posts/domain/entities/post_entity.dart';
+
+class PostAuthorApiModel {
+  final String id;
+  final String name;
+  final String? profilePicture; // filename like "1772-xxx.jpg"
+
+  PostAuthorApiModel({
+    required this.id,
+    required this.name,
+    required this.profilePicture,
+  });
+
+  factory PostAuthorApiModel.fromJson(Map<String, dynamic> json) {
+    return PostAuthorApiModel(
+      id: (json['_id'] ?? json['id']).toString(),
+      name: (json['name'] ?? '').toString(),
+      profilePicture: json['profilePicture']?.toString(),
+    );
+  }
+
+  PostAuthorEntity toEntity() {
+    final pfp = profilePicture;
+    return PostAuthorEntity(
+      id: id,
+      name: name,
+      profilePictureUrl: (pfp == null || pfp.isEmpty)
+          ? null
+          : ApiEndpoints.profileImageUrl(pfp),
+    );
+  }
+}
+
+class PostAttachmentApiModel {
+  final String? id; // mongo _id
+  final String url; // can be "/uploads/posts/xxx.jpg" OR full url
+  final String type;
+
+  PostAttachmentApiModel({
+    required this.id,
+    required this.url,
+    required this.type,
+  });
+
+  factory PostAttachmentApiModel.fromJson(Map<String, dynamic> json) {
+    return PostAttachmentApiModel(
+      id: json['_id']?.toString(),
+      url: (json['url'] ?? '').toString(),
+      type: (json['type'] ?? 'image').toString(),
+    );
+  }
+
+  PostAttachmentEntity toEntity() {
+    final raw = url.trim();
+    final fullUrl = (raw.startsWith('http://') || raw.startsWith('https://'))
+        ? raw
+        : '${ApiEndpoints.serverUrl}$raw'; // because backend gives "/uploads/posts/.."
+    return PostAttachmentEntity(
+      id: id,
+      url: fullUrl,
+      type: type,
+    );
+  }
+}
 
 class PostApiModel {
   final String id;
-  final String title;
-  final String content;
-  final String description;
+  final PostAuthorApiModel? author;
 
-  final String authorId;
-  final String authorName;
-  final String authorProfilePicture;
+  final String? title;
+  final String? description;
+  final String? content;
 
-  final int likesCount;
-  final int commentsCount;
-  final int sharesCount;
-  final int savesCount;
-  final int viewsCount;
+  final List<PostAttachmentApiModel> attachments;
 
   final String status;
   final String visibility;
 
-  final List<Attachment> attachments;
+  final int viewsCount;
+  final int likesCount;
+  final int savesCount;
+  final int sharesCount;
+  final int commentsCount;
 
   final bool isLiked;
   final bool isSaved;
 
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? createdAt;
 
   PostApiModel({
     required this.id,
+    required this.author,
     required this.title,
-    required this.content,
     required this.description,
-    required this.authorId,
-    required this.authorName,
-    required this.authorProfilePicture,
-    required this.likesCount,
-    required this.commentsCount,
-    required this.sharesCount,
-    required this.savesCount,
-    required this.viewsCount,
+    required this.content,
+    required this.attachments,
     required this.status,
     required this.visibility,
+    required this.viewsCount,
+    required this.likesCount,
+    required this.savesCount,
+    required this.sharesCount,
+    required this.commentsCount,
+    required this.isLiked,
+    required this.isSaved,
     required this.createdAt,
-    required this.updatedAt, required this.attachments, required this.isLiked, required this.isSaved,
   });
 
   factory PostApiModel.fromJson(Map<String, dynamic> json) {
-  final authorData = json['author'];
-  final authorId = authorData is Map ? authorData['_id'] ?? '' : authorData.toString();
-  final authorName = authorData is Map ? authorData['name'] ?? '' : 'Unknown';
-  final authorProfilePicture =
-      authorData is Map ? authorData['profilePicture'] ?? 'default-picture.png' : 'default-picture.png';
+    int asInt(dynamic v) => (v is int) ? v : int.tryParse(v?.toString() ?? '0') ?? 0;
+    bool asBool(dynamic v) => (v is bool) ? v : (v?.toString() == 'true');
 
-  return PostApiModel(
-    id: json['_id'] ?? '',
-    title: json['title'] ?? '',
-    content: json['content'] ?? '',
-    description: json['description'] ?? '',
-    authorId: authorId,
-    authorName: authorName,
-    authorProfilePicture: authorProfilePicture,
-    likesCount: json['likesCount'] ?? 0,
-    commentsCount: json['commentsCount'] ?? 0,
-    sharesCount: json['sharesCount'] ?? 0,
-    savesCount: json['savesCount'] ?? 0,
-    viewsCount: json['viewsCount'] ?? 0,
-    status: json['status'] ?? 'draft',
-    visibility: json['visibility'] ?? 'public',
-    attachments: (json['attachments'] as List? ?? []).map((a) {
-      if (a is Map<String, dynamic>) {
-        return Attachment(
-          url: a['url'] ?? '',
-          type: a['type'] ?? 'file',
-        );
-      } else if (a is String) {
-        return Attachment(url: a, type: 'file');
-      } else {
-        return Attachment(url: '', type: 'file');
-      }
-    }).toList(),
-    createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
-    updatedAt: DateTime.tryParse(json['updatedAt'] ?? '') ?? DateTime.now(), isLiked: json['isLiked'] ?? false, isSaved: json['isSaved'] ?? false,
-  );
-}
+    final rawAuthor = json['author'];
+    final author = (rawAuthor is Map<String, dynamic>) ? PostAuthorApiModel.fromJson(rawAuthor) : null;
 
-  Map<String, dynamic> toJson() {
-    return {
-      "title": title,
-      "content": content,
-      "description": description,
-      "status": status,
-      "visibility": visibility,
-      "attachments": attachments
-          .map((a) => {
-                "url": a.url,
-                "type": a.type,
-              })
-          .toList(),
-      "createdAt": createdAt.toIso8601String(),
-      "updatedAt": updatedAt.toIso8601String(),
-      "isLiked": isLiked,
-      "isSaved": isSaved,
-    };
+    final rawAtt = json['attachments'];
+    final attachments = (rawAtt is List)
+        ? rawAtt
+            .whereType<Map>()
+            .map((e) => PostAttachmentApiModel.fromJson(e.cast<String, dynamic>()))
+            .toList()
+        : <PostAttachmentApiModel>[];
+
+    final rawCreatedAt = json['createdAt'];
+    final createdAt = rawCreatedAt == null ? null : DateTime.tryParse(rawCreatedAt.toString());
+
+    return PostApiModel(
+      id: (json['_id'] ?? json['id']).toString(),
+      author: author,
+      title: json['title']?.toString(),
+      description: json['description']?.toString(),
+      content: json['content']?.toString(),
+      attachments: attachments,
+      status: (json['status'] ?? 'published').toString(),
+      visibility: (json['visibility'] ?? 'public').toString(),
+      viewsCount: asInt(json['viewsCount']),
+      likesCount: asInt(json['likesCount']),
+      savesCount: asInt(json['savesCount']),
+      sharesCount: asInt(json['sharesCount']),
+      commentsCount: asInt(json['commentsCount']),
+      isLiked: asBool(json['isLiked']),
+      isSaved: asBool(json['isSaved']),
+      createdAt: createdAt,
+    );
   }
 
   PostEntity toEntity() {
     return PostEntity(
       id: id,
+      author: author?.toEntity(),
       title: title,
-      content: content,
       description: description,
-      authorId: authorId,
-      authorName: authorName,
-      authorProfilePicture: authorProfilePicture,
-      likesCount: likesCount,
-      commentsCount: commentsCount,
-      sharesCount: sharesCount,
-      savesCount: savesCount,
-      viewsCount: viewsCount,
+      content: content,
+      attachments: attachments.map((a) => a.toEntity()).toList(),
       status: status,
       visibility: visibility,
-      attachments: attachments,
+      viewsCount: viewsCount,
+      likesCount: likesCount,
+      savesCount: savesCount,
+      sharesCount: sharesCount,
+      commentsCount: commentsCount,
+      isLiked: isLiked,
+      isSaved: isSaved,
       createdAt: createdAt,
-      updatedAt: updatedAt, isLiked: isLiked, isSaved: isSaved,
-    );
-  }
-
-  factory PostApiModel.fromEntity(PostEntity entity) {
-    return PostApiModel(
-      id: entity.id,
-      title: entity.title,
-      content: entity.content,
-      description: entity.description,
-      authorId: entity.authorId,
-      authorName: entity.authorName,
-      authorProfilePicture: entity.authorProfilePicture,
-      likesCount: entity.likesCount,
-      commentsCount: entity.commentsCount,
-      sharesCount: entity.sharesCount,
-      savesCount: entity.savesCount,
-      viewsCount: entity.viewsCount,
-      status: entity.status,
-      visibility: entity.visibility,
-      attachments: entity.attachments,
-      createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt, isLiked: false, isSaved: false,
     );
   }
 }

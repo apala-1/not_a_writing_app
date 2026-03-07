@@ -53,8 +53,8 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
           case '/edit-profile':
             return MaterialPageRoute(builder: (_) => const EditProfileScreen());
-          case '/createFromPosts':
-            return MaterialPageRoute(builder: (_) => const CreateFromPostsScreen());
+          // case '/createFromPosts':
+          //   return MaterialPageRoute(builder: (_) => const CreateFromPostsScreen());
           default:
             // Unknown route fallback
             return MaterialPageRoute(

@@ -4,23 +4,18 @@ import 'package:not_a_writing_app/core/error/failures.dart';
 import 'package:not_a_writing_app/features/posts/domain/entities/post_entity.dart';
 import 'package:not_a_writing_app/features/posts/domain/repositories/post_repository.dart';
 import 'package:not_a_writing_app/features/posts/presentation/pages/write_create_screen.dart';
+import 'package:not_a_writing_app/features/posts/presentation/providers/posts_providers.dart';
 
-final getPostsUsecaseProvider = Provider<GetPostsUsecase>((ref) {
+final getPostsUsecaseProvider = Provider<GetAllPostsUsecase>((ref) {
   final repository = ref.read(postRepositoryProvider);
-  return GetPostsUsecase(repository);
+  return GetAllPostsUsecase(repository);
 });
 
-class GetPostsUsecase {
-  final IPostRepository repository;
+class GetAllPostsUsecase {
+  final PostsRepository repo;
+  GetAllPostsUsecase(this.repo);
 
-  GetPostsUsecase(this.repository);
-
-  Future<Either<Failure, List<PostEntity>>> call({int skip = 0, int limit = 10}) async {
-    try {
-      final posts = await repository.getAllPosts(skip: skip, limit: limit);
-      return Right(posts);
-    } catch (e) {
-      return Left(ApiFailure(message: e.toString()));
-    }
+  Future<List<PostEntity>> call({int skip = 0, int limit = 10}) {
+    return repo.getAllPosts(skip: skip, limit: limit);
   }
 }

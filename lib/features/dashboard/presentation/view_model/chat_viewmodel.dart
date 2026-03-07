@@ -12,12 +12,14 @@ final chatViewModelProvider =
     StateNotifierProvider<ChatViewModel, ChatState>((ref) {
   final repo = ChatRepositoryImpl(ref.read(chatRemoteDataSourceProvider));
   final token = ref.read(userSessionServiceProvider).getUserToken() ?? '';
+  final senderId = ref.read(userSessionServiceProvider).getUserId() ?? 'unknown';
   return ChatViewModel(repo, token);
 });
 
 class ChatViewModel extends StateNotifier<ChatState> {
   final ChatRepositoryImpl repo;
   final String token;
+  
   StreamSubscription<ChatEntity>? _sub;
 
   ChatViewModel(this.repo, this.token) : super(ChatState(messages: [], loading: false));
@@ -25,6 +27,7 @@ class ChatViewModel extends StateNotifier<ChatState> {
   Future<void> initialize(String myId, String receiverId) async {
     // Connect socket
     await repo.connect(myId, token);
+    print('{myId: $myId, token: $token}');
 
     // Fetch history
     state = state.copyWith(loading: true);
@@ -37,24 +40,26 @@ class ChatViewModel extends StateNotifier<ChatState> {
     });
   }
 
-  void sendMessage(String sender, String receiver, String message) async {
-    final newMessage = ChatEntity(
-      id: const Uuid().v4(),
-      sender: sender,
-      receiver: receiver,
-      message: message,
-      createdAt: DateTime.now(),
-    );
+void sendMessage(String sender, String receiver, String message) async {
+  // Create local ChatEntity
+  final newMessage = ChatEntity(
+    id: const Uuid().v4(),
+    sender: sender,
+    receiver: receiver,
+    message: message,
+    createdAt: DateTime.now(),
+  );
+  print('Sender in vm: $sender, Receiver: $receiver, Message: $message , Token: $token');
 
-    // Optimistic UI update
-    state = state.copyWith(messages: [...state.messages, newMessage]);
+  // Add it to state so UI updates immediately
+  state = state.copyWith(messages: [...state.messages, newMessage]);
 
-    try {
-      await repo.sendMessage(sender, receiver, message, token);
-    } catch (e) {
-      print('Error sending message: $e');
-    }
+  try {
+    await repo.sendMessage(sender, receiver, message, token);
+  } catch (e) {
+    print('Error sending message: $e');
   }
+}
 
   @override
   void dispose() {

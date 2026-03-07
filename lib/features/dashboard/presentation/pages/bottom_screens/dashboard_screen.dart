@@ -1,19 +1,14 @@
-import 'dart:math';
 import 'dart:async';
+import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:not_a_writing_app/core/services/storage/user_service.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/view_model/comments_view_model.dart';
+import 'package:not_a_writing_app/features/posts/domain/entities/post_entity.dart';
 import 'package:sensors_plus/sensors_plus.dart';
-import 'package:not_a_writing_app/core/api/api_endpoints.dart';
-import 'package:not_a_writing_app/features/dashboard/presentation/view_model/dashboard_viewmodel.dart';
-import 'package:not_a_writing_app/features/dashboard/presentation/widgets/comments_sheet.dart';
-import 'package:not_a_writing_app/features/dashboard/presentation/widgets/expandable_text.dart';
-import 'package:not_a_writing_app/features/dashboard/presentation/widgets/like_save_action_button.dart';
-import 'package:not_a_writing_app/features/posts/presentation/pages/write_create_screen.dart';
-import 'package:not_a_writing_app/features/dashboard/presentation/widgets/progress_card.dart';
-import 'package:not_a_writing_app/features/dashboard/presentation/widgets/quick_action_item.dart';
-import 'package:not_a_writing_app/features/dashboard/presentation/widgets/streak_card.dart';
-import 'package:not_a_writing_app/theme/colors.dart';
-import 'book_detail_screen.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -23,475 +18,662 @@ class DashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
-  final ScrollController _scrollController = ScrollController();
+  final _scroll = ScrollController();
+  final _picker = ImagePicker();
   StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
   final double _shakeThreshold = 20.0;
   bool _isRefreshing = false;
 
-  // Modern Orange Rose Palette
+  @override
+  void initState() {
+    super.initState();
+    _scroll.addListener(() {
+      final pos = _scroll.position;
+      if (pos.pixels > pos.maxScrollExtent - 300) {
+        ref.read(dashboardVmProvider.notifier).loadMore();
+      }
+    });
+    _startShakeDetection();
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    _accelerometerSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _scrollListener() {
+    if (_scroll.position.pixels >=
+        _scroll.position.maxScrollExtent - 200) {
+      ref.read(dashboardVmProvider.notifier).loadMore();
+    }
+  }
+
   static const Color primaryOrange = Color(0xFFFF7F00);
   static const Color roseAccent = Color(0xFFF25C78);
   static const Color softRose = Color(0xFFFFF1F2);
   static const Color textDark = Color(0xFF1E293B);
   static const Color textGray = Color(0xFF64748B);
 
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_scrollListener);
-    _startShakeDetection();
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    _accelerometerSubscription?.cancel();
-    super.dispose();
-  }
-
-  void _scrollListener() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      ref.read(dashboardViewModelProvider.notifier).fetchPosts();
-    }
-  }
-
-  void _navigateTo(Widget screen) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => screen),
-    );
-
-    if (result == true) {
-      ref.read(dashboardViewModelProvider.notifier).refreshPosts();
-    }
-  }
-
   void _startShakeDetection() {
-    _accelerometerSubscription =
-        accelerometerEventStream().listen((AccelerometerEvent event) {
-      double acceleration =
-          sqrt(event.x * event.x + event.y * event.y + event.z * event.z);
+  _accelerometerSubscription =
+      accelerometerEventStream().listen((AccelerometerEvent event) async {
+    double acceleration =
+        sqrt(event.x * event.x + event.y * event.y + event.z * event.z);
 
-      if (acceleration > _shakeThreshold && !_isRefreshing) {
-        _isRefreshing = true;
+    if (acceleration > _shakeThreshold && !_isRefreshing) {
+      setState(() => _isRefreshing = true);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text("Refreshing feed..."),
-            backgroundColor: primaryOrange,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
+      if (_scroll.hasClients) {
+        await _scroll.animateTo(
+          0,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOut,
         );
-
-        ref.read(dashboardViewModelProvider.notifier).refreshPosts();
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) setState(() => _isRefreshing = false);
-        });
       }
-    });
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    final dashboardState = ref.watch(dashboardViewModelProvider);
-    final postsAsync = dashboardState.posts;
+      await ref.read(dashboardVmProvider.notifier).refresh();
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
-      body: SafeArea(
-        child: RefreshIndicator(
-          color: primaryOrange,
-          onRefresh: () async => ref.read(dashboardViewModelProvider.notifier).refreshPosts(),
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header Section
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+      if (mounted) {
+        setState(() => _isRefreshing = false);
+      }
+    }
+  });
+}
+
+  Future<void> _showCreateDialog() async {
+    final titleCtrl = TextEditingController();
+    final descCtrl = TextEditingController();
+    final contentCtrl = TextEditingController();
+
+    bool draft = false;
+    final picked = <File>[];
+
+    Future<void> pickImages(StateSetter setModalState) async {
+      final images = await _picker.pickMultiImage(imageQuality: 85);
+      if (images.isEmpty) return;
+
+      // enforce max 5 like backend
+      final remaining = 5 - picked.length;
+      final take = images.take(remaining);
+
+      picked.addAll(take.map((x) => File(x.path)));
+      setModalState(() {});
+    }
+
+    final ok = await showDialog<bool>(
+  context: context,
+  builder: (_) => StatefulBuilder(
+    builder: (context, setModalState) => AlertDialog(
+      title: const Text('Create Post'),
+      content: SizedBox(
+        width: double.maxFinite,
+        // constrain dialog height so it doesn't ask for intrinsics
+        height: MediaQuery.of(context).size.height * 0.55,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleCtrl,
+                decoration: const InputDecoration(labelText: 'Title'),
+              ),
+              TextField(
+                controller: descCtrl,
+                decoration: const InputDecoration(labelText: 'Description'),
+              ),
+              TextField(
+                controller: contentCtrl,
+                decoration: const InputDecoration(labelText: 'Content'),
+                maxLines: 5,
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: picked.length >= 5 ? null : () => pickImages(setModalState),
+                    icon: const Icon(Icons.photo_library),
+                    label: Text('Add images (${picked.length}/5)'),
+                  ),
+                  const SizedBox(width: 8),
+                  if (picked.isNotEmpty)
+                    TextButton(
+                      onPressed: () {
+                        picked.clear();
+                        setModalState(() {});
+                      },
+                      child: const Text('Clear'),
+                    ),
+                ],
+              ),
+              if (picked.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 90,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: picked.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 8),
+                    itemBuilder: (_, i) => Stack(
                       children: [
-                        const Text(
-                          'Hi Apala 👋',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            color: textDark,
-                            letterSpacing: -0.5,
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.file(
+                            picked[i],
+                            width: 90,
+                            height: 90,
+                            fit: BoxFit.cover,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Ready to write some magic?',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: textGray.withOpacity(0.8),
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: IconButton(
+                            icon: const Icon(Icons.close),
+                            color: Colors.white,
+                            onPressed: () {
+                              picked.removeAt(i);
+                              setModalState(() {});
+                            },
                           ),
                         ),
                       ],
                     ),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                          )
-                        ],
-                      ),
-                      child: const CircleAvatar(
-                        backgroundColor: softRose,
-                        child: Icon(Icons.notifications_none_rounded, color: roseAccent),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 28),
-
-                // Streak Card
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
-                    gradient: const LinearGradient(
-                      colors: [primaryOrange, roseAccent],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: roseAccent.withOpacity(0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      )
-                    ],
-                  ),
-                  child: StreakCard(
-                    onStartWriting: () => _navigateTo(const WriteScreen()),
                   ),
                 ),
-                const SizedBox(height: 32),
+              ],
+              const SizedBox(height: 12),
+              SwitchListTile(
+                value: draft,
+                onChanged: (v) => setModalState(() => draft = v),
+                title: const Text('Save as draft'),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+        FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Create')),
+      ],
+    ),
+  ),
+);
 
-                // Quick Actions
-                const Text(
-                  'Quick Tools',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textDark),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildQuickAction(Icons.auto_awesome_rounded, 'Prompt', Colors.amber),
-                    _buildQuickAction(Icons.menu_book_rounded, 'Reading', Colors.blueAccent),
-                    _buildQuickAction(
-                      Icons.edit_note_rounded,
-                      'Writing',
-                      primaryOrange,
-                      onTap: () => _navigateTo(const WriteScreen()),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 36),
+    if (ok == true) {
+      await ref.read(dashboardVmProvider.notifier).onCreatePost(
+            title: titleCtrl.text.trim().isEmpty ? null : titleCtrl.text.trim(),
+            description: descCtrl.text.trim().isEmpty ? null : descCtrl.text.trim(),
+            content: contentCtrl.text.trim(),
+            asDraft: draft,
+            attachments: picked, // ✅ send picked files
+          );
+      await ref.read(dashboardVmProvider.notifier).refresh();
+    }
+  }
 
-                // Progress Section
-                const Row(
-                  children: [
-                    Icon(Icons.insights_rounded, color: primaryOrange, size: 20),
-                    SizedBox(width: 8),
-                    Text(
-                      'Your Journey',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textDark),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                ProgressCard(
-                  title: 'Finish "Once in a Lifetime"',
-                  progress: 0.63,
-                  onTap: () => _navigateTo(const BookDetailScreen()),
+  Future<void> _showEditDialog(PostEntity post) async {
+  final titleCtrl = TextEditingController(text: post.title ?? '');
+  final descCtrl = TextEditingController(text: post.description ?? '');
+  final contentCtrl = TextEditingController(text: post.content ?? '');
+
+  bool draft = post.status == 'draft';
+
+  // existing attachments to keep (start: all)
+  final keepExisting = post.attachments
+      .where((a) => a.id != null) // must have mongo id to be keep-able
+      .toList();
+
+  // new attachments to add
+  final newPicked = <File>[];
+
+  Future<void> pickNewImages(StateSetter setModalState) async {
+    final images = await _picker.pickMultiImage(imageQuality: 85);
+    if (images.isEmpty) return;
+
+    // backend max 5 total; enforce total = keepExisting + newPicked <= 5
+    final remaining = 5 - (keepExisting.length + newPicked.length);
+    if (remaining <= 0) return;
+
+    final take = images.take(remaining);
+    newPicked.addAll(take.map((x) => File(x.path)));
+
+    setModalState(() {});
+  }
+
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (_) => StatefulBuilder(
+      builder: (context, setModalState) => AlertDialog(
+        title: const Text('Edit Post'),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: MediaQuery.of(context).size.height * 0.65,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'Title')),
+                TextField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Description')),
+                TextField(
+                  controller: contentCtrl,
+                  decoration: const InputDecoration(labelText: 'Content'),
+                  maxLines: 5,
                 ),
                 const SizedBox(height: 12),
-                ProgressCard(
-                  title: 'Finish "Summer Vibes"',
-                  progress: 0.24,
-                  onTap: () => _navigateTo(const WriteScreen()),
+                SwitchListTile(
+                  value: draft,
+                  onChanged: (v) => setModalState(() => draft = v),
+                  title: const Text('Draft'),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 12),
 
-                // Feed Section
+                // Existing attachments (server)
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Discover Stories',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textDark),
-                    ),
-                    TextButton(
-                      onPressed: () {},
-                      child: const Text('View All', style: TextStyle(color: roseAccent, fontWeight: FontWeight.bold)),
-                    ),
+                    const Text('Existing attachments', style: TextStyle(fontWeight: FontWeight.w600)),
+                    const Spacer(),
+                    Text('${keepExisting.length} kept'),
                   ],
                 ),
                 const SizedBox(height: 8),
-
-                postsAsync.when(
-                  data: (posts) {
-                    if (posts.isEmpty) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 40),
-                          child: Text('No stories yet. Be the first to write!'),
-                        ),
-                      );
-                    }
-                    return ListView.separated(
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: posts.length + 1,
-                      separatorBuilder: (_, __) => const SizedBox(height: 20),
-                      itemBuilder: (context, index) {
-                        if (index == posts.length) {
-                          return ref.read(dashboardViewModelProvider.notifier).hasMore
-                              ? const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 24),
-                                  child: Center(child: CircularProgressIndicator(color: primaryOrange)),
-                                )
-                              : const SizedBox(height: 40);
-                        }
-
-                        final postWithUser = posts[index];
-                        return _PostCard(postId: postWithUser.post.id);
+                if (keepExisting.isEmpty)
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('No existing attachments'),
+                  )
+                else
+                  SizedBox(
+                    height: 90,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: keepExisting.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      itemBuilder: (_, i) {
+                        final att = keepExisting[i];
+                        return Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.network(
+                                att.url,
+                                width: 90,
+                                height: 90,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  width: 90,
+                                  height: 90,
+                                  color: Colors.grey.shade200,
+                                  alignment: Alignment.center,
+                                  child: const Icon(Icons.broken_image),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              child: IconButton(
+                                icon: const Icon(Icons.close),
+                                color: Colors.white,
+                                onPressed: () {
+                                  keepExisting.removeAt(i); // removing means "delete on save"
+                                  setModalState(() {});
+                                },
+                              ),
+                            ),
+                          ],
+                        );
                       },
-                    );
-                  },
-                  loading: () => const Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 40),
-                      child: CircularProgressIndicator(color: primaryOrange),
                     ),
                   ),
-                  error: (e, st) => Center(child: Text('Failed to load feed: $e')),
+
+                const SizedBox(height: 16),
+
+                // New attachments (local)
+                Row(
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: (keepExisting.length + newPicked.length) >= 5
+                          ? null
+                          : () => pickNewImages(setModalState),
+                      icon: const Icon(Icons.add_photo_alternate_outlined),
+                      label: Text('Add new (${newPicked.length})'),
+                    ),
+                    const SizedBox(width: 8),
+                    if (newPicked.isNotEmpty)
+                      TextButton(
+                        onPressed: () {
+                          newPicked.clear();
+                          setModalState(() {});
+                        },
+                        child: const Text('Clear new'),
+                      ),
+                    const Spacer(),
+                    Text('Total: ${keepExisting.length + newPicked.length}/5'),
+                  ],
                 ),
+                const SizedBox(height: 8),
+                if (newPicked.isNotEmpty)
+                  SizedBox(
+                    height: 90,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: newPicked.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      itemBuilder: (_, i) => Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.file(
+                              newPicked[i],
+                              width: 90,
+                              height: 90,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: IconButton(
+                              icon: const Icon(Icons.close),
+                              color: Colors.white,
+                              onPressed: () {
+                                newPicked.removeAt(i);
+                                setModalState(() {});
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildQuickAction(IconData icon, String label, Color color, {VoidCallback? onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                )
-              ],
-            ),
-            child: Icon(icon, color: color, size: 28),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: textDark),
-          ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Save')),
         ],
       ),
-    );
+    ),
+  );
+
+  if (ok == true) {
+    final keepIds = keepExisting.map((a) => a.id!).toList();
+
+    await ref.read(dashboardVmProvider.notifier).onUpdatePost(
+          postId: post.id,
+          title: titleCtrl.text.trim().isEmpty ? null : titleCtrl.text.trim(),
+          description: descCtrl.text.trim().isEmpty ? null : descCtrl.text.trim(),
+          content: contentCtrl.text.trim().isEmpty ? null : contentCtrl.text.trim(),
+          asDraft: draft,
+          newAttachments: newPicked, // ✅ add these
+          keepExistingAttachmentIds: keepIds, // ✅ keep these
+        );
+
+        await ref.read(dashboardVmProvider.notifier).refresh();
   }
 }
 
-class _PostCard extends ConsumerWidget {
-  final String postId;
-  const _PostCard({required this.postId});
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(dashboardVmProvider);
+    final vm = ref.read(dashboardVmProvider.notifier);
+
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showCreateDialog,
+        child: const Icon(Icons.add),
+      ),
+      body: Column(
+  children: [
+    if (state.error != null)
+      MaterialBanner(
+        content: Text(state.error!),
+        actions: [
+          TextButton(onPressed: () => vm.refresh(), child: const Text('Retry')),
+        ],
+      ),
+
+    Expanded(
+  child: _isRefreshing
+      ? const Center(child: CircularProgressIndicator())
+      : RefreshIndicator(
+          onRefresh: vm.refresh,
+          child: ListView.separated(
+                controller: _scroll,
+                itemCount: state.posts.length + (state.loadingMore ? 1 : 0),
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (_, index) {
+                  if (index >= state.posts.length) {
+                    return const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+                  final post = state.posts[index];
+                 final currentUserId = ref.read(userSessionProvider).getUserId();
+final isMine = post.author?.id == currentUserId;
+print('aUTHOR: ${post.author?.id}');
+print("cURRENT USER: ${currentUserId}");
+
+return _PostTile(
+  post: post,
+  isMine: isMine,
+  onEdit: () => _showEditDialog(post),
+  onDelete: () => vm.onDeletePost(post.id),
+  onLike: () => vm.onToggleLike(post.id),
+  onSave: () => vm.onToggleSave(post.id),
+);
+                },
+              ),
+            ),
+          ),
+  ],
+      ),
+      );
+  }
+}
+
+
+class _PostTile extends StatelessWidget {
+  final PostEntity post;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final VoidCallback onLike;
+  final VoidCallback onSave;
+  final bool isMine;
+
+  const _PostTile({
+    required this.post,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onLike,
+    required this.onSave, required this.isMine,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final dashboardState = ref.watch(dashboardViewModelProvider);
-    final postWithUser = dashboardState.posts.value!
-        .firstWhere((p) => p.post.id == postId);
-
-    final vm = ref.read(dashboardViewModelProvider.notifier);
-    final post = postWithUser.post;
+  Widget build(BuildContext context) {
+    final author = post.author;
+    final pfp = author?.profilePictureUrl;
 
     return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
+            blurRadius: 10,
+            color: Colors.black.withOpacity(0.05),
+            offset: const Offset(0, 4),
           )
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // User Info
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: const Color(0xFFFF7F00).withOpacity(0.1),
-                    child: const Icon(Icons.person, color: Color(0xFFFF7F00)),
-                  ),
-                  const SizedBox(width: 12),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Author Name', style: TextStyle(fontWeight: FontWeight.bold)),
-                      Text('2h ago', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                    ],
-                  ),
-                  const Spacer(),
-                  IconButton(onPressed: () {}, icon: const Icon(Icons.more_horiz)),
-                ],
-              ),
-            ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
 
-            // Image Content
-            if (post.attachments.isNotEmpty)
-              SizedBox(
-                height: 250,
-                width: double.infinity,
-                child: PageView.builder(
-                  itemCount: post.attachments.length,
-                  itemBuilder: (context, i) => Image.network(
-                    "${ApiEndpoints.mediaServerUrl}${post.attachments[i].url}",
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        Container(color: Colors.grey[200], child: const Icon(Icons.image_not_supported)),
+          /// Author row
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundImage: (pfp != null) ? NetworkImage(pfp) : null,
+                child: pfp == null ? const Icon(Icons.person) : null,
+              ),
+              const SizedBox(width: 10),
+
+              Expanded(
+                child: Text(
+                  author?.name ?? "Unknown",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
 
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    post.title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF1E293B),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    post.description,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: const Color(0xFF64748B).withOpacity(0.8),
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  ExpandableText(
-                    text: post.content,
-                    style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B), height: 1.5),
-                  ),
-                ],
+              PopupMenuButton<String>(
+  onSelected: (v) {
+    if (v == 'edit') onEdit();
+    if (v == 'delete') onDelete();
+    if (v == 'report') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Post reported")),
+      );
+    }
+  },
+  itemBuilder: (_) {
+    if (isMine) {
+      return const [
+        PopupMenuItem(value: 'edit', child: Text('Edit')),
+        PopupMenuItem(value: 'delete', child: Text('Delete')),
+      ];
+    } else {
+      return const [
+        PopupMenuItem(value: 'report', child: Text('Report')),
+      ];
+    }
+  },
+),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          /// Title
+          if ((post.title ?? '').isNotEmpty)
+            Text(
+              post.title!,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
               ),
             ),
 
-            // Actions
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _PostAction(
-                    icon: postWithUser.isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                    label: post.likesCount.toString(),
-                    color: postWithUser.isLiked ? Colors.red : Colors.grey[600]!,
-                    onTap: () => vm.toggleLike(post.id),
-                  ),
-                  _PostAction(
-                    icon: Icons.chat_bubble_outline_rounded,
-                    label: post.commentsCount.toString(),
-                    onTap: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (_) => CommentsSheet(postId: post.id),
-                      );
-                    },
-                  ),
-                  _PostAction(
-                    icon: Icons.share_outlined,
-                    label: post.sharesCount.toString(),
-                    onTap: () => vm.addShare(post.id),
-                  ),
-                  _PostAction(
-                    icon: postWithUser.isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-                    label: postWithUser.isSaved ? 'Saved' : 'Save',
-                    color: postWithUser.isSaved ? Colors.orange : Colors.grey[600]!,
-                    onTap: () => vm.toggleSave(post.id),
-                  ),
-                ],
+          if ((post.title ?? '').isNotEmpty)
+            const SizedBox(height: 6),
+
+          /// Content
+          Text(
+            post.content ?? '',
+            style: const TextStyle(height: 1.4),
+          ),
+
+          const SizedBox(height: 12),
+
+          /// Attachments preview
+          if (post.attachments.isNotEmpty)
+            SizedBox(
+              height: 160,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: post.attachments.length,
+                itemBuilder: (_, i) {
+                  final url = post.attachments[i].url;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        "$url",
+                        width: 160,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
-            const SizedBox(height: 8),
-          ],
-        ),
+
+          const SizedBox(height: 12),
+
+          /// Actions
+          Row(
+            children: [
+
+              _ActionButton(
+  icon: post.isLiked ? Icons.favorite : Icons.favorite_border,
+  label: "${post.likesCount}",
+  onTap: onLike,
+  color: post.isLiked ? Colors.red : null,
+),
+
+              const SizedBox(width: 16),
+
+             _ActionButton(
+  icon: post.isSaved ? Icons.bookmark : Icons.bookmark_border,
+  label: "${post.savesCount}",
+  onTap: onSave,
+  color: post.isSaved ? Colors.amber : null,
+),
+
+              const Spacer(),
+
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: post.status == "draft"
+                      ? Colors.orange.withOpacity(0.2)
+                      : Colors.green.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(post.status),
+              )
+            ],
+          )
+        ],
       ),
     );
   }
 }
 
-class _PostAction extends StatelessWidget {
+class _ActionButton extends StatelessWidget {
   final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final Color color;
+final String label;
+final VoidCallback onTap;
+final Color? color;
 
-  const _PostAction({
+  const _ActionButton({
     required this.icon,
     required this.label,
-    required this.onTap,
-    this.color = const Color(0xFF64748B),
+    required this.onTap, this.color,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Row(
-          children: [
-            Icon(icon, size: 22, color: color),
-            const SizedBox(width: 6),
-            Text(label, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)),
-          ],
-        ),
+      borderRadius: BorderRadius.circular(10),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: color),
+          const SizedBox(width: 4),
+          Text(label),
+        ],
       ),
     );
   }

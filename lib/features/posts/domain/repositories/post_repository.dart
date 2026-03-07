@@ -1,16 +1,19 @@
-import 'dart:core';
 import 'dart:io';
-import 'package:dartz/dartz.dart';
-import 'package:not_a_writing_app/core/error/failures.dart';
-import 'package:not_a_writing_app/features/posts/domain/entities/post_entity.dart';
+import '../entities/post_entity.dart';
 
-abstract class IPostRepository {
+abstract class PostsRepository {
+  Future<List<PostEntity>> getAllPosts({int skip, int limit});
+  Future<PostEntity> getPostById(String id);
+
+  Future<List<PostEntity>> getDrafts();
+  Future<List<PostEntity>> getMyPosts();
+
   Future<PostEntity> createPost({
-    required String title,
-    required String description,
+    String? title,
+    String? description,
     required String content,
-    required bool isDraft,
-    List<File>? attachments,
+    required bool asDraft,
+    List<File> attachments,
   });
 
   Future<PostEntity> updatePost({
@@ -18,19 +21,13 @@ abstract class IPostRepository {
     String? title,
     String? description,
     String? content,
-    bool? isDraft,
-    List<File>? attachments,
+    required bool asDraft,
+    List<File> newAttachments,
+    List<String> keepExistingAttachmentIds,
   });
 
-  Future<List<PostEntity>> getDrafts();
-  Future<List<PostEntity>> getAllPosts({int skip = 0, int limit = 10});
-  Future<PostEntity> getPostById(String postId);
-  Future<List<PostEntity>> getMyPosts(String userId, {int skip = 0, int limit = 10});
+  Future<void> deletePost(String postId);
+
   Future<PostEntity> toggleLike(String postId);
   Future<PostEntity> toggleSave(String postId);
-  Future<void> addShare(String postId);
-  Future<void> addView(String postId);
-
-  Future<List<PostEntity>> getFeed({String? lastCreatedAt, int limit = 10});
-  Future<List<PostEntity>> getRankedFeed({int skip = 0, int limit = 10});
 }

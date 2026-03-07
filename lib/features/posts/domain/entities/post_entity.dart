@@ -1,123 +1,67 @@
-import 'package:equatable/equatable.dart';
-import 'package:not_a_writing_app/features/posts/domain/entities/attachment_entity.dart';
-
-class PostEntity extends Equatable {
+class PostAuthorEntity {
   final String id;
-  final String title;
-  final String description;
-  final String content;
+  final String name;
+  final String? profilePictureUrl;
 
-  final String authorId;
-  final String authorName;
-  final String authorProfilePicture;
+  const PostAuthorEntity({
+    required this.id,
+    required this.name,
+    this.profilePictureUrl,
+  });
+}
 
-  final String status;      // "draft" | "published"
-  final String visibility;  // "public" | "private"
+class PostAttachmentEntity {
+  final String? id; // attachment _id from mongo (can be null for new uploads)
+  final String url; // FULL URL for Image.network
+  final String type; // "image" | "gif" | "file"
 
-  final List<Attachment> attachments;
+  const PostAttachmentEntity({
+    required this.id,
+    required this.url,
+    required this.type,
+  });
+}
+
+class PostEntity {
+  final String id;
+  final PostAuthorEntity? author;
+
+  final String? title;
+  final String? description;
+  final String? content;
+
+  final List<PostAttachmentEntity> attachments;
+
+  final String status;     // draft/published
+  final String visibility; // private/public
 
   final int viewsCount;
   final int likesCount;
-  final int sharesCount;
   final int savesCount;
+  final int sharesCount;
   final int commentsCount;
 
   final bool isLiked;
   final bool isSaved;
 
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? createdAt;
 
   const PostEntity({
     required this.id,
+    required this.author,
     required this.title,
     required this.description,
     required this.content,
-
-    required this.authorId,
-    required this.authorName,
-    required this.authorProfilePicture,
-
+    required this.attachments,
     required this.status,
     required this.visibility,
-
-    this.attachments = const [],
-
-    this.viewsCount = 0,
-    this.likesCount = 0,
-    this.sharesCount = 0,
-    this.savesCount = 0,
-    this.commentsCount = 0,
-
+    required this.viewsCount,
+    required this.likesCount,
+    required this.savesCount,
+    required this.sharesCount,
+    required this.commentsCount,
+    required this.isLiked,
+    required this.isSaved,
     required this.createdAt,
-    required this.updatedAt, required this.isLiked, required this.isSaved,
   });
-
-  bool get isDraft => status == "draft";
-
-  PostEntity copyWith({
-    String? id,
-    String? title,
-    String? description,
-    String? content,
-    String? authorId,
-    String? authorName,
-    String? authorProfilePicture,
-    String? status,
-    String? visibility,
-    List<Attachment>? attachments,
-    int? viewsCount,
-    int? likesCount,
-    int? sharesCount,
-    int? savesCount,
-    int? commentsCount,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-    bool? isLiked,
-    bool? isSaved,
-  }) {
-    return PostEntity(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      description: description ?? this.description,
-      content: content ?? this.content,
-      authorId: authorId ?? this.authorId,
-      authorName: authorName ?? this.authorName,
-      authorProfilePicture:
-          authorProfilePicture ?? this.authorProfilePicture,
-      status: status ?? this.status,
-      visibility: visibility ?? this.visibility,
-      attachments: attachments ?? this.attachments,
-      viewsCount: viewsCount ?? this.viewsCount,
-      likesCount: likesCount ?? this.likesCount,
-      sharesCount: sharesCount ?? this.sharesCount,
-      savesCount: savesCount ?? this.savesCount,
-      commentsCount: commentsCount ?? this.commentsCount,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt, isLiked: isLiked ?? this.isLiked, isSaved: isSaved ?? this.isSaved,
-    );
-  }
-
-  @override
-  List<Object?> get props => [
-        id,
-        title,
-        description,
-        content,
-        authorId,
-        authorName,
-        authorProfilePicture,
-        status,
-        visibility,
-        attachments,
-        viewsCount,
-        likesCount,
-        sharesCount,
-        savesCount,
-        commentsCount,
-        createdAt,
-        updatedAt,
-        isLiked,
-        isSaved,
-      ];
 }

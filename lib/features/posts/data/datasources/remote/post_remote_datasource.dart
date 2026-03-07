@@ -1,270 +1,173 @@
 import 'dart:io';
-import 'dart:convert';
-import 'package:mime/mime.dart';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
+import 'package:not_a_writing_app/core/api/api_client.dart';
 import 'package:not_a_writing_app/core/api/api_endpoints.dart';
-import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
-import 'package:not_a_writing_app/features/posts/data/datasources/post_datasource.dart';
 import 'package:not_a_writing_app/features/posts/data/models/post_api_model.dart';
-import 'package:not_a_writing_app/features/posts/domain/entities/post_entity.dart';
 
-class PostRemoteDatasource implements IPostRemoteDatasource {
-  final UserSessionService _userSessionService;
+abstract class PostsRemoteDataSource {
+  Future<List<PostApiModel>> getAllPosts({int skip, int limit});
+  Future<PostApiModel> getPostById(String id);
 
-  PostRemoteDatasource({required UserSessionService userSessionService})
-      : _userSessionService = userSessionService;
+  Future<List<PostApiModel>> getDrafts();
+  Future<List<PostApiModel>> getMyPosts();
 
-  Future<String> _getToken() async => _userSessionService.getUserToken() ?? '';
-
-  @override
-  Future<PostEntity> createPost({
-    required String title,
-    required String description,
+  Future<PostApiModel> createPost({
+    String? title,
+    String? description,
     required String content,
-    required bool isDraft,
-    List<File>? attachments,
-  }) async {
-    final uri = Uri.parse('${ApiEndpoints.baseUrl}${ApiEndpoints.createPost()}');
-    var request = http.MultipartRequest('POST', uri);
-    request.headers['Authorization'] = 'Bearer ${await _getToken()}';
+    required bool asDraft,
+    List<File> attachments,
+  });
 
-    request.fields['title'] = title;
-    request.fields['description'] = description;
-    request.fields['content'] = content;
-    request.fields['status'] = isDraft ? 'draft' : 'published';
-
-    if (attachments != null) {
-  for (var file in attachments) {
-    final mimeType = lookupMimeType(file.path) ?? 'application/octet-stream';
-    final parts = mimeType.split('/');
-
-    request.files.add(
-      await http.MultipartFile.fromPath(
-        'attachments',
-        file.path,
-        contentType: http.MediaType(parts[0], parts[1]),
-      ),
-    );
-  }
-}
-
-    final streamedResponse = await request.send();
-    final response = await http.Response.fromStream(streamedResponse);
-
-    if (response.statusCode != 201) {
-      throw Exception('Failed to create post: ${response.body}');
-    }
-
-    final data = jsonDecode(response.body)['data'];
-    return PostApiModel.fromJson(data).toEntity();
-  }
-
-  @override
-  Future<PostEntity> updatePost({
+  Future<PostApiModel> updatePost({
     required String postId,
     String? title,
     String? description,
     String? content,
-    bool? isDraft,
-    List<File>? attachments,
+    required bool asDraft,
+    List<File> newAttachments,
+    List<String> keepExistingAttachmentIds,
+  });
+
+  Future<void> deletePost(String postId);
+
+  Future<PostApiModel> toggleLike(String postId);
+  Future<PostApiModel> toggleSave(String postId);
+}
+
+class PostsRemoteDataSourceImpl implements PostsRemoteDataSource {
+  final ApiClient api;
+  PostsRemoteDataSourceImpl(this.api);
+
+  Map<String, dynamic> _unwrapData(Response res) {
+    final body = res.data;
+    if (body is Map<String, dynamic> && body.containsKey('data')) {
+      return body;
+    }
+    // fallback if some endpoint returns raw list (your feed method is inconsistent)
+    return {'data': body};
+  }
+
+  @override
+  Future<List<PostApiModel>> getAllPosts({int skip = 0, int limit = 10}) async {
+    final res = await api.dio.get(
+      ApiEndpoints.getAllPosts(),
+      queryParameters: {'skip': skip, 'limit': limit},
+    );
+
+    final body = _unwrapData(res);
+    final list = (body['data'] as List).cast<Map<String, dynamic>>();
+    return list.map(PostApiModel.fromJson).toList();
+  }
+
+  @override
+  Future<PostApiModel> getPostById(String id) async {
+    final res = await api.dio.get(ApiEndpoints.getPostById(id));
+    final body = _unwrapData(res);
+    return PostApiModel.fromJson(body['data'] as Map<String, dynamic>);
+  }
+
+  @override
+  Future<List<PostApiModel>> getDrafts() async {
+    final res = await api.dio.get(ApiEndpoints.getDrafts());
+    final body = _unwrapData(res);
+    final list = (body['data'] as List).cast<Map<String, dynamic>>();
+    return list.map(PostApiModel.fromJson).toList();
+  }
+
+  @override
+  Future<List<PostApiModel>> getMyPosts() async {
+    final res = await api.dio.get(ApiEndpoints.getMyPosts());
+    final body = _unwrapData(res);
+    final list = (body['data'] as List).cast<Map<String, dynamic>>();
+    return list.map(PostApiModel.fromJson).toList();
+  }
+
+  @override
+  Future<PostApiModel> createPost({
+    String? title,
+    String? description,
+    required String content,
+    required bool asDraft,
+    List<File> attachments = const [],
   }) async {
-    final uri = Uri.parse('${ApiEndpoints.baseUrl}${ApiEndpoints.updatePost(postId)}');
-    var request = http.MultipartRequest('PUT', uri);
-    request.headers['Authorization'] = 'Bearer ${await _getToken()}';
+    final form = FormData();
 
-    if (title != null) request.fields['title'] = title;
-    if (description != null) request.fields['description'] = description;
-    if (content != null) request.fields['content'] = content;
-    if (isDraft != null) request.fields['status'] = isDraft ? 'draft' : 'published';
+    if (title != null) form.fields.add(MapEntry('title', title));
+    if (description != null) form.fields.add(MapEntry('description', description));
+    form.fields.add(MapEntry('content', content));
 
-    if (attachments != null) {
-      for (var file in attachments) {
-        request.files.add(await http.MultipartFile.fromPath('attachments', file.path));
-      }
+    // BACKEND EXPECTS req.body.draft === "true"
+    form.fields.add(MapEntry('draft', asDraft ? 'true' : 'false'));
+
+    for (final f in attachments) {
+      form.files.add(
+        MapEntry(
+          'attachments',
+          await MultipartFile.fromFile(f.path, filename: f.uri.pathSegments.last),
+        ),
+      );
     }
 
-    final streamedResponse = await request.send();
-    final response = await http.Response.fromStream(streamedResponse);
+    final res = await api.dio.post(ApiEndpoints.createPost(), data: form);
+    final body = _unwrapData(res);
+    return PostApiModel.fromJson(body['data'] as Map<String, dynamic>);
+  }
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to update post: ${response.body}');
+  @override
+  Future<PostApiModel> updatePost({
+    required String postId,
+    String? title,
+    String? description,
+    String? content,
+    required bool asDraft,
+    List<File> newAttachments = const [],
+    List<String> keepExistingAttachmentIds = const [],
+  }) async {
+    final form = FormData();
+
+    if (title != null) form.fields.add(MapEntry('title', title));
+    if (description != null) form.fields.add(MapEntry('description', description));
+    if (content != null) form.fields.add(MapEntry('content', content));
+
+    // BACKEND EXPECTS req.body.draft === "true"
+    form.fields.add(MapEntry('draft', asDraft ? 'true' : 'false'));
+
+    // BACKEND expects existingAttachments (array or single)
+    for (final id in keepExistingAttachmentIds) {
+      form.fields.add(MapEntry('existingAttachments', id));
     }
 
-    final data = jsonDecode(response.body)['data'];
-    return PostApiModel.fromJson(data).toEntity();
+    for (final f in newAttachments) {
+      form.files.add(
+        MapEntry(
+          'attachments',
+          await MultipartFile.fromFile(f.path, filename: f.uri.pathSegments.last),
+        ),
+      );
+    }
+
+    final res = await api.dio.put(ApiEndpoints.updatePost(postId), data: form);
+    final body = _unwrapData(res);
+    return PostApiModel.fromJson(body['data'] as Map<String, dynamic>);
   }
 
   @override
-Future<List<PostEntity>> getAllPosts({
-  int skip = 0,
-  int limit = 10,
-}) async {
-  final uri = Uri.parse(
-    '${ApiEndpoints.baseUrl}${ApiEndpoints.getAllPosts()}?skip=$skip&limit=$limit',
-  );
-
-  final res = await http.get(
-    uri,
-    headers: {'Authorization': 'Bearer ${await _getToken()}'},
-  );
-
-  if (res.statusCode != 200) {
-    throw Exception('Failed to fetch posts: ${res.body}');
-  }
-
-  final data = jsonDecode(res.body)['data'] as List;
-  return data.map((json) => _mapJsonToPost(json)).toList();
-}
-
-@override
-Future<List<PostEntity>> getDrafts() async {
-  final uri = Uri.parse(
-    '${ApiEndpoints.baseUrl}${ApiEndpoints.getDrafts()}',
-  );
-
-  final res = await http.get(
-    uri,
-    headers: {'Authorization': 'Bearer ${await _getToken()}'},
-  );
-
-  if (res.statusCode != 200) {
-    throw Exception('Failed to fetch drafts: ${res.body}');
-  }
-
-  final data = jsonDecode(res.body)['data'] as List;
-  return data.map((json) => _mapJsonToPost(json)).toList();
-}
-
-@override
-Future<List<PostEntity>> getFeed({
-  String? lastCreatedAt,
-  int limit = 10,
-}) async {
-  final uri = Uri.parse(
-    '${ApiEndpoints.baseUrl}${ApiEndpoints.getFeed()}'
-    '?limit=$limit'
-    '${lastCreatedAt != null ? '&lastCreatedAt=$lastCreatedAt' : ''}',
-  );
-
-  final res = await http.get(
-    uri,
-    headers: {'Authorization': 'Bearer ${await _getToken()}'},
-  );
-
-  if (res.statusCode != 200) {
-    throw Exception('Failed to fetch feed: ${res.body}');
-  }
-
-  final data = jsonDecode(res.body)['data'] as List;
-  return data.map((json) => _mapJsonToPost(json)).toList();
-}
-
-@override
-Future<List<PostEntity>> getRankedFeed({
-  int skip = 0,
-  int limit = 10,
-}) async {
-  final uri = Uri.parse(
-    '${ApiEndpoints.baseUrl}${ApiEndpoints.rankedFeed}?skip=$skip&limit=$limit',
-  );
-
-  final res = await http.get(
-    uri,
-    headers: {'Authorization': 'Bearer ${await _getToken()}'},
-  );
-
-  if (res.statusCode != 200) {
-    throw Exception('Failed to fetch ranked feed: ${res.body}');
-  }
-
-  final data = jsonDecode(res.body)['data'] as List;
-  return data.map((json) => _mapJsonToPost(json)).toList();
-}
-
-@override
-Future<PostEntity> getPostById(String postId) async {
-  final uri = Uri.parse(
-    '${ApiEndpoints.baseUrl}${ApiEndpoints.getPostById(postId)}',
-  );
-
-  final res = await http.get(
-    uri,
-    headers: {'Authorization': 'Bearer ${await _getToken()}'},
-  );
-
-  if (res.statusCode != 200) {
-    throw Exception('Failed to fetch post: ${res.body}');
-  }
-
-  final data = jsonDecode(res.body)['data'];
-  return _mapJsonToPost(data);
-}
-
-@override
-Future<PostEntity> toggleLike(String postId) async {
-  final res = await http.post(
-    Uri.parse('${ApiEndpoints.baseUrl}${ApiEndpoints.toggleLike(postId)}'),
-    headers: {'Authorization': 'Bearer ${await _getToken()}'},
-  );
-
-  if (res.statusCode != 200) throw Exception('Failed to toggle like');
-
-  final data = jsonDecode(res.body)['data']; // make sure backend returns updated post
-  return _mapJsonToPost(data);
-}
-
-@override
-Future<PostEntity> toggleSave(String postId) async {
-  final res = await http.post(
-    Uri.parse('${ApiEndpoints.baseUrl}${ApiEndpoints.toggleSave(postId)}'),
-    headers: {'Authorization': 'Bearer ${await _getToken()}'},
-  );
-
-  if (res.statusCode != 200) throw Exception('Failed to toggle save');
-
-  final data = jsonDecode(res.body)['data']; // expect "saved" or "unsaved"
-  return _mapJsonToPost(data); // backend should send updated post data
-}
-
-  @override
-  Future<void> addShare(String postId) async {
-    final res = await http.post(
-      Uri.parse('${ApiEndpoints.baseUrl}${ApiEndpoints.addShare(postId)}'),
-      headers: {'Authorization': 'Bearer ${await _getToken()}'},
-    );
-    if (res.statusCode != 200) throw Exception('Failed to share post');
+  Future<void> deletePost(String postId) async {
+    await api.dio.delete(ApiEndpoints.deletePost(postId));
   }
 
   @override
-  Future<void> addView(String postId) async {
-    final res = await http.post(
-      Uri.parse('${ApiEndpoints.baseUrl}${ApiEndpoints.addView(postId)}'),
-      headers: {'Authorization': 'Bearer ${await _getToken()}'},
-    );
-    if (res.statusCode != 200) throw Exception('Failed to add view');
+  Future<PostApiModel> toggleLike(String postId) async {
+    final res = await api.dio.post(ApiEndpoints.toggleLike(postId));
+    final body = _unwrapData(res);
+    return PostApiModel.fromJson(body['data'] as Map<String, dynamic>);
   }
 
-  PostEntity _mapJsonToPost(Map<String, dynamic> json) {
-  final apiModel = PostApiModel.fromJson(json);
-  return apiModel.toEntity();
-}
-
-@override
-Future<List<PostEntity>> getMyPosts(String userId, {int skip = 0, int limit = 10}) async {
-  final uri = Uri.parse(
-    '${ApiEndpoints.baseUrl}${ApiEndpoints.getMyPosts(userId!)}?skip=$skip&limit=$limit',
-  );
-
-  final res = await http.get(
-    uri,
-    headers: {'Authorization': 'Bearer ${await _getToken()}'},
-  );
-
-  if (res.statusCode != 200) {
-    throw Exception('Failed to fetch user posts: ${res.body}');
+  @override
+  Future<PostApiModel> toggleSave(String postId) async {
+    final res = await api.dio.post(ApiEndpoints.toggleSave(postId));
+    final body = _unwrapData(res);
+    return PostApiModel.fromJson(body['data'] as Map<String, dynamic>);
   }
-
-  final data = jsonDecode(res.body)['data'] as List;
-  return data.map((json) => _mapJsonToPost(json)).toList();
-}
 }

@@ -10,7 +10,17 @@ class ChatRepositoryImpl implements ChatRepository {
   @override
   Future<List<ChatEntity>> getMessages(String myId, String receiverId, String token) async {
     final raw = await remote.getMessages(myId, receiverId, token);
-    return raw.map((e) => ChatEntity.fromJson(e)).toList();
+
+    // Map backend fields to your entity fields
+    return raw.map((json) {
+      return ChatEntity(
+        id: json['_id'],
+        sender: json['senderId'],
+        receiver: json['receiverId'],
+        message: json['content'],          // << important: content → message
+        createdAt: DateTime.parse(json['createdAt']),
+      );
+    }).toList();
   }
 
   @override
@@ -20,7 +30,15 @@ class ChatRepositoryImpl implements ChatRepository {
 
   @override
   Stream<ChatEntity> onMessageReceived() {
-    return remote.onMessageReceived().map((e) => ChatEntity.fromJson(e));
+    return remote.onMessageReceived().map((json) {
+      return ChatEntity(
+        id: json['_id'],
+        sender: json['senderId'],
+        receiver: json['receiverId'],
+        message: json['content'],          // << same mapping here
+        createdAt: DateTime.parse(json['createdAt']),
+      );
+    });
   }
 
   @override

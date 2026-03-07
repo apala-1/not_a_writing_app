@@ -46,6 +46,9 @@ static const String resetPassword = '$auth/reset-password';
   // ===== MEDIA =====
   static String media(String filename) => '$serverUrl/uploads/$filename';
 
+   static String profileImageUrl(String filename) => '$serverUrl/uploads/profiles/$filename';
+  static String postAttachmentUrl(String filename) => '$serverUrl/uploads/posts/$filename';
+
   // ===== POSTS =====
 static const String posts = '/post';
 
@@ -62,7 +65,7 @@ static String getFeed() => '$posts/feed';
 static String getPostById(String id) => '$posts/$id';
 
 // GET /post//my-posts
-static String getMyPosts(String userId) => '$posts/my-posts/$userId';
+static String getMyPosts() => '$posts/my-posts';
 
 // POST /post
 static String createPost() => posts;

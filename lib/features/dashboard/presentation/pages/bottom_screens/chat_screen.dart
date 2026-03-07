@@ -86,14 +86,18 @@ void initState() {
                 IconButton(
                   icon: const Icon(Icons.send),
                   onPressed: () {
-                    if (_controller.text.trim().isEmpty) return;
-                    ref.read(chatViewModelProvider.notifier).sendMessage(
-                          widget.myId,
-                          widget.receiverId,
-                          _controller.text.trim(),
-                        );
-                    _controller.clear();
-                  },
+  final text = _controller.text.trim();
+  if (text.isEmpty) return;
+
+  ref.read(chatViewModelProvider.notifier).sendMessage(
+        widget.receiverId, // only receiver
+        text,             // message
+        _controller.text.trim(),
+  );
+
+  print('Sender: ${widget.myId}, Receiver: ${widget.receiverId}, Message: $text');
+  _controller.clear();
+},
                 )
               ],
             ),

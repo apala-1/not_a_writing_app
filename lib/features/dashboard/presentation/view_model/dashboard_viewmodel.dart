@@ -1,127 +1,145 @@
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:not_a_writing_app/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/state/dashboard_state.dart';
-import 'package:not_a_writing_app/features/posts/data/repositories/post_repository.dart';
 import 'package:not_a_writing_app/features/posts/domain/entities/post_entity.dart';
-import 'package:not_a_writing_app/features/posts/presentation/state/post_with_user_state.dart';
-import 'package:not_a_writing_app/features/profile/data/datasources/remote/profile_remote_datasource.dart';
-import 'package:not_a_writing_app/features/profile/data/models/profile_api_model.dart';
+import 'package:not_a_writing_app/features/posts/domain/usecases/create_post_usecase.dart';
+import 'package:not_a_writing_app/features/posts/domain/usecases/delete_post_usecase.dart';
+import 'package:not_a_writing_app/features/posts/domain/usecases/get_posts_usecase.dart';
+import 'package:not_a_writing_app/features/posts/domain/usecases/toggle_like_usecase.dart';
+import 'package:not_a_writing_app/features/posts/domain/usecases/toggle_save_usecase.dart';
+import 'package:not_a_writing_app/features/posts/domain/usecases/update_post_usecase.dart';
 
-final dashboardViewModelProvider =
-    StateNotifierProvider<DashboardViewModel, DashboardState>(
-  (ref) => DashboardViewModel(ref),
-);
 
 class DashboardViewModel extends StateNotifier<DashboardState> {
-  final Ref _ref;
+  final GetAllPostsUsecase getAllPosts;
+  final CreatePostUsecase createPost;
+  final UpdatePostUsecase updatePost;
+  final DeletePostUsecase deletePost;
+  final ToggleLikeUsecase toggleLike;
+  final ToggleSaveUsecase toggleSave;
+
+  static const int _limit = 10;
   int _skip = 0;
-  final int _limit = 10;
-  bool _hasMore = true;
-  bool _isLoading = false;
 
-  DashboardViewModel(this._ref)
-      : super(DashboardState(
-          posts: const AsyncValue.loading(),
-          profile: const AsyncValue.loading(),
-        )) {
-    fetchPosts();
-    fetchProfileStats();
-  }
+  DashboardViewModel({
+    required this.getAllPosts,
+    required this.createPost,
+    required this.updatePost,
+    required this.deletePost,
+    required this.toggleLike,
+    required this.toggleSave,
+  }) : super(DashboardState.initial());
 
-  // ---------------- Posts ----------------
-  Future<void> fetchPosts() async {
-    if (_isLoading || !_hasMore) return;
-    _isLoading = true;
-
+  Future<void> refresh() async {
+    state = state.copyWith(loading: true, error: null);
+    _skip = 0;
     try {
-      final posts =
-          await _ref.read(postRepositoryProvider).getAllPosts(skip: _skip, limit: _limit);
-
-      if (posts.length < _limit) _hasMore = false;
-      _skip += posts.length;
-
-      final currentPosts = state.posts.value ?? [];
-      final newPosts = posts.map((p) => PostWithUserState(post: p, isSaved: p.isSaved, isLiked: p.isLiked)).toList();
-
-      state = state.copyWith(posts: AsyncValue.data([...currentPosts, ...newPosts]));
-    } catch (e, st) {
-      state = state.copyWith(posts: AsyncValue.error(e, st));
-    } finally {
-      _isLoading = false;
+      final data = await getAllPosts(skip: _skip, limit: _limit);
+      _skip = data.length;
+      state = state.copyWith(
+        loading: false,
+        posts: data,
+        hasMore: data.length == _limit,
+      );
+    } catch (e) {
+      state = state.copyWith(loading: false, error: e.toString());
     }
   }
 
-  bool get hasMore => _hasMore;
-
-  Future<void> refreshPosts() async {
-  _skip = 0;
-  _hasMore = true;
-  state = state.copyWith(posts: const AsyncValue.data([]));
-  await fetchPosts();
-}
-
-  // ---------------- Profile ----------------
-  Future<void> fetchProfileStats() async {
-    state = state.copyWith(profile: const AsyncValue.loading());
+  Future<void> loadMore() async {
+    if (state.loadingMore || !state.hasMore) return;
+    state = state.copyWith(loadingMore: true, error: null);
     try {
-      final user = _ref.read(authViewmodelProvider).authEntity;
-      if (user == null) {
-        state = state.copyWith(profile: AsyncValue.data(null));
-        return;
-      }
-
-      final profile = await _ref.read(profileRemoteProvider).fetchProfileById(user.authId!);
-      state = state.copyWith(profile: AsyncValue.data(profile));
-    } catch (e, st) {
-      state = state.copyWith(profile: AsyncValue.error(e, st));
+      final data = await getAllPosts(skip: _skip, limit: _limit);
+      _skip += data.length;
+      state = state.copyWith(
+        loadingMore: false,
+        posts: [...state.posts, ...data],
+        hasMore: data.length == _limit,
+      );
+    } catch (e) {
+      state = state.copyWith(loadingMore: false, error: e.toString());
     }
   }
 
-  // ---------------- Post Actions ----------------
-  Future<void> toggleLike(String postId) async {
-  final updatedPost =
-      await _ref.read(postRepositoryProvider).toggleLike(postId);
-
-  _updatePostInState(
-    postId,
-    (p) => p.copyWith(
-      post: updatedPost,
-      isLiked: !p.isLiked, // or compute properly if needed
-    ),
-  );
-}
-
- Future<void> toggleSave(String postId) async {
-  final updatedPost =
-      await _ref.read(postRepositoryProvider).toggleSave(postId);
-
-  _updatePostInState(
-    postId,
-    (p) => p.copyWith(
-      post: updatedPost,
-      isSaved: !p.isSaved,
-    ),
-  );
-}
-
-  Future<void> addShare(String postId) async {
-    await _ref.read(postRepositoryProvider).addShare(postId);
-
-    _updatePostInState(postId, (p) => p.copyWith(
-          post: p.post.copyWith(sharesCount: (p.post.sharesCount + 1)),
-        ));
+  Future<void> onCreatePost({
+    String? title,
+    String? description,
+    required String content,
+    required bool asDraft,
+    List<File> attachments = const [],
+  }) async {
+    state = state.copyWith(error: null);
+    try {
+      final created = await createPost(
+        title: title,
+        description: description,
+        content: content,
+        asDraft: asDraft,
+        attachments: attachments,
+      );
+      // insert on top
+      state = state.copyWith(posts: [created, ...state.posts]);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
   }
 
-  void _updatePostInState(
-      String postId, PostWithUserState Function(PostWithUserState) updateFn) {
-    final posts = state.posts.value;
-    if (posts == null) return;
+  Future<void> onUpdatePost({
+    required String postId,
+    String? title,
+    String? description,
+    String? content,
+    required bool asDraft,
+    List<File> newAttachments = const [],
+    List<String> keepExistingAttachmentIds = const [],
+  }) async {
+    state = state.copyWith(error: null);
+    try {
+      final updated = await updatePost(
+        postId: postId,
+        title: title,
+        description: description,
+        content: content,
+        asDraft: asDraft,
+        newAttachments: newAttachments,
+        keepExistingAttachmentIds: keepExistingAttachmentIds,
+      );
+      final next = state.posts.map((p) => p.id == postId ? updated : p).toList();
+      state = state.copyWith(posts: next);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
 
-    state = state.copyWith(
-      posts: AsyncValue.data(
-        posts.map((p) => p.post.id == postId ? updateFn(p) : p).toList(),
-      ),
-    );
+  Future<void> onDeletePost(String postId) async {
+    state = state.copyWith(error: null);
+    try {
+      await deletePost(postId);
+      state = state.copyWith(posts: state.posts.where((p) => p.id != postId).toList());
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
+  Future<void> onToggleLike(String postId) async {
+    try {
+      final updated = await toggleLike(postId);
+      final next = state.posts.map((p) => p.id == postId ? updated : p).toList();
+      state = state.copyWith(posts: next);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
+  Future<void> onToggleSave(String postId) async {
+    try {
+      final updated = await toggleSave(postId);
+      final next = state.posts.map((p) => p.id == postId ? updated : p).toList();
+      state = state.copyWith(posts: next);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
   }
 }

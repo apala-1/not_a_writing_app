@@ -12,32 +12,34 @@ class ProfileApiModel{
   final String bio;
   final String? token;
   final int postsCount;
-
-  Map<String, dynamic> toJson({String? password}) {
-    return {
-      "name": name,
-      "email": email,
-      "profilePicture": profilePicture,
-      "occupation": occupation,
-      "bio": bio,
-      if(password != null) "password": password,
-      "token": token,
-      "postsCount": postsCount,
-    };
-  }
+  
+Map<String, dynamic> toJson({String? password}) {
+  return {
+    "name": name,
+    "email": email,
+    "profilePicture": profilePicture,
+    "occupation": occupation,
+    "bio": bio,
+    if (password != null) "password": password,
+    if (token != null) "token": token,
+    "postsCount": postsCount,
+  };
+}
 
     factory ProfileApiModel.fromJson(Map<String, dynamic> json) {
-    return ProfileApiModel(
-      id: json['_id'] ?? json['userId'] ?? '',
-      name: json['name'],
-      email: json['email'],
-      profilePicture: json['profilePicture'] ?? 'default-picture.png',
-      occupation: json['occupation'] ?? '',
-      bio: json['bio'] ?? '', token: json['token'], postsCount: (json['postsCount'] is int)
-    ? json['postsCount']
-    : int.tryParse(json['postsCount'].toString()) ?? 0,
-    );
-  }
+  return ProfileApiModel(
+    id: (json['_id'] ?? json['userId'] ?? '').toString(),
+    name: (json['name'] ?? '').toString(),
+    email: (json['email'] ?? '').toString(),
+    profilePicture: (json['profilePicture'] ?? 'default-picture.png').toString(),
+    occupation: (json['occupation'] ?? '').toString(),
+    bio: (json['bio'] ?? '').toString(),
+    token: json['token']?.toString(),
+    postsCount: (json['postsCount'] is int)
+        ? json['postsCount']
+        : int.tryParse((json['postsCount'] ?? 0).toString()) ?? 0,
+  );
+}
 
   factory ProfileApiModel.fromParams(UpdateProfileParams params) {
   return ProfileApiModel(

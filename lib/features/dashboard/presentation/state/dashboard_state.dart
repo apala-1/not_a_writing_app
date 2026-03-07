@@ -1,23 +1,41 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:not_a_writing_app/features/posts/presentation/state/post_with_user_state.dart';
-import 'package:not_a_writing_app/features/profile/data/models/profile_api_model.dart';
+
+import 'package:not_a_writing_app/features/posts/domain/entities/post_entity.dart';
 
 class DashboardState {
-  final AsyncValue<List<PostWithUserState>> posts; // <- use PostWithUserState
-  final AsyncValue<ProfileApiModel?> profile;
+  final bool loading;
+  final bool loadingMore;
+  final String? error;
+  final List<PostEntity> posts;
+  final bool hasMore;
 
-  DashboardState({
+  const DashboardState({
+    required this.loading,
+    required this.loadingMore,
     required this.posts,
-    required this.profile,
+    required this.hasMore,
+    this.error,
   });
 
+  factory DashboardState.initial() => const DashboardState(
+        loading: false,
+        loadingMore: false,
+        posts: [],
+        hasMore: true,
+      );
+
   DashboardState copyWith({
-    AsyncValue<List<PostWithUserState>>? posts,
-    AsyncValue<ProfileApiModel?>? profile,
+    bool? loading,
+    bool? loadingMore,
+    String? error,
+    List<PostEntity>? posts,
+    bool? hasMore,
   }) {
     return DashboardState(
+      loading: loading ?? this.loading,
+      loadingMore: loadingMore ?? this.loadingMore,
+      error: error,
       posts: posts ?? this.posts,
-      profile: profile ?? this.profile,
+      hasMore: hasMore ?? this.hasMore,
     );
   }
 }

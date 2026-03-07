@@ -30,6 +30,7 @@ class ChatRemoteDataSource {
       '${ApiEndpoints.baseUrl}${ApiEndpoints.getConversation(myId, receiverId)}',
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
+    print('Res data: ${res.data}');
     return List<Map<String, dynamic>>.from(res.data['data']);
   }
 
