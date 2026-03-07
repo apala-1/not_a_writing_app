@@ -1,18 +1,31 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:not_a_writing_app/features/dashboard/data/datasources/book_datasource.dart';
-import 'package:not_a_writing_app/features/dashboard/data/repositories/book_repository.dart';
-import 'package:not_a_writing_app/features/dashboard/domain/entities/book_entity.dart';
+import 'dart:io';
+import '../entities/book_entity.dart';
 
-final bookRepositoryProvider = Provider<BookRepository>((ref) {
-  return BookRepositoryImpl(ref.read(bookRemoteDatasourceProvider));
-});
+abstract class BooksRepository {
+  Future<List<BookEntity>> getAllBooks({int skip, int limit});
+  Future<List<BookEntity>> getMyBooks();
+  Future<BookEntity> getBookById(String id);
 
-abstract class BookRepository {
-  Future<BookEntity> createBookMultipart({
+  Future<BookEntity> createBook({
     required String title,
     required String description,
-    required List<Map<String, dynamic>> chapters,
-    required XFile coverPhoto,
+    required String visibility,
+    required bool asDraft,
+    required List<BookChapterEntity> chapters,
+    required File coverPhotoFile, // REQUIRED by backend
   });
+
+  Future<BookEntity> updateBook({
+    required String bookId,
+    required String title,
+    required String description,
+    required String visibility,
+    required bool asDraft,
+    required List<BookChapterEntity> chapters,
+    File? coverPhotoFile, // optional on update
+  });
+
+  Future<void> deleteBook(String bookId);
+
+  Future<String> uploadChapterImage(File file);
 }

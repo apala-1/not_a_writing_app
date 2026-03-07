@@ -3,19 +3,21 @@ import 'package:not_a_writing_app/features/dashboard/domain/repositories/book_re
 
 import '../entities/book_entity.dart';
 
-class CreateBookUsecase {
+class UpdateBookUsecase {
   final BooksRepository repo;
-  CreateBookUsecase(this.repo);
+  UpdateBookUsecase(this.repo);
 
   Future<BookEntity> call({
+    required String bookId,
     required String title,
     required String description,
     required String visibility,
     required bool asDraft,
     required List<BookChapterEntity> chapters,
-    required File coverPhotoFile,
+    File? coverPhotoFile,
   }) {
-    return repo.createBook(
+    return repo.updateBook(
+      bookId: bookId,
       title: title,
       description: description,
       visibility: visibility,

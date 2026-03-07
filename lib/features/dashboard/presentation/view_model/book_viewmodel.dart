@@ -1,25 +1,35 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:not_a_writing_app/features/dashboard/domain/usecases/create_book_usecase.dart';
-import 'package:not_a_writing_app/features/posts/domain/entities/post_entity.dart';
+import 'package:flutter_riverpod/legacy.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/state/books_state.dart';
+import '../../domain/entities/book_entity.dart';
+import '../../domain/usecases/delete_book_usecase.dart';
+import '../../domain/usecases/get_my_books_usecase.dart';
 
-final bookViewModelProvider = Provider<BookViewmodel>((ref) {
-  final createBookUseCase = ref.read(createBookUsecaseProvider);
-  return BookViewmodel(createBookUseCase);
-});
+class BooksDashboardVm extends StateNotifier<BooksDashboardState> {
+  final GetMyBooksUsecase getMyBooks;
+  final DeleteBookUsecase deleteBook;
 
-class BookViewmodel {
-  final CreateBookUseCase _createBookUseCase;
+  BooksDashboardVm({
+    required this.getMyBooks,
+    required this.deleteBook,
+  }) : super(BooksDashboardState.initial());
 
-  BookViewmodel(this._createBookUseCase);
-
-  Future<void> createBook(List<PostEntity> selectedPosts, {required String title, required String description, required XFile coverPhoto}) async {
+  Future<void> load() async {
+    state = state.copyWith(loading: true, error: null);
     try {
-      final book = await _createBookUseCase(selectedPosts, title: title, description: description, coverPhoto: coverPhoto);
-      print("Book created: ${book.title}");
-      // You can now remove your temporary body print
+      final data = await getMyBooks();
+      state = state.copyWith(loading: false, books: data);
     } catch (e) {
-      print("Error creating book: $e");
+      state = state.copyWith(loading: false, error: e.toString());
+    }
+  }
+
+  Future<void> onDelete(String bookId) async {
+    try {
+      await deleteBook(bookId);
+      state = state.copyWith(books: state.books.where((b) => b.id != bookId).toList());
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
     }
   }
 }

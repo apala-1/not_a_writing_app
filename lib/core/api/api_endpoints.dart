@@ -181,6 +181,9 @@ static String getAllBooks() => books;
 // GET /books/drafts
 static String getBookDrafts() => '$books/drafts';
 
+// GET /book/my-books
+static String getMyBooks() => '$books/my-books';
+
 // GET /books/:id
 static String getBookById(String id) => '$books/$id';
 
@@ -195,6 +198,9 @@ static String updateBook(String id) => '$books/$id';
 
 // DELETE /books/:id
 static String deleteBook(String id) => '$books/$id';
+
+// ===== BOOKS =====
+static String uploadBookChapterImage() => '$books/upload-chapter-image';
 
   // ===== TIMEOUTS =====
   static const Duration connectionTimeout = Duration(seconds: 30);

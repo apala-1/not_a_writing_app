@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/book_browser_screen.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/books_dashboard_screen.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/dashboard_screen.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/profile_screen.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/search_users_page.dart';
@@ -26,7 +27,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
 
   final List<Widget> lstBottomScreen = [
     const DashboardScreen(),
-    const BookBrowserScreen(),
+    const BooksDashboardScreen(),
     const SearchUsersPage(),
     const ViewMessagesScreen(),
     const ProfileScreen(),
