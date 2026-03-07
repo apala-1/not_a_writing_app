@@ -105,6 +105,7 @@ Future<void> fetchFullProfile(String userId) async {
 
   try {
     final profileResult = await _getProfileByIdUsecase(userId);
+    print('FULL PROFILE RAW: ${profileResult}');
 
     profileResult.fold(
       (failure) {

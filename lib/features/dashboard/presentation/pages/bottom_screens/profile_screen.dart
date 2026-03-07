@@ -102,7 +102,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     backgroundImage: (profile?.profilePicture != null &&
                             profile!.profilePicture.isNotEmpty &&
                             profile.profilePicture != 'default-picture.png')
-                        ? NetworkImage('${ApiEndpoints.mediaServerUrl}/uploads/${profile.profilePicture}')
+                        ? NetworkImage('${ApiEndpoints.mediaServerUrl}/uploads/profiles/${profile.profilePicture}')
                         : null,
                     child: (profile?.profilePicture == null || profile!.profilePicture.isEmpty)
                         ? const Icon(Icons.person, size: 60, color: textGray)
@@ -177,7 +177,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   icon: Icons.settings_rounded,
                   title: 'Preferences',
                   color: textGray,
-                  onTap: () {},
+                  onTap: () => Navigator.pushNamed(context, '/settings'),
                 ),
                 const SizedBox(height: 20),
                 const Text('Security', style: TextStyle(fontWeight: FontWeight.bold, color: textDark, fontSize: 16)),

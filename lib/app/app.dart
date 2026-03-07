@@ -6,6 +6,7 @@ import 'package:not_a_writing_app/features/auth/presentation/pages/signup_screen
 import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_navigation_screen.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/create_from_posts_screen.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/dashboard_screen.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/pages/bottom_screens/settings_screen.dart';
 import 'package:not_a_writing_app/features/onboarding/presentation/pages/onboarding_screen.dart';
 import 'package:not_a_writing_app/features/profile/presentation/pages/edit_profile_screen.dart';
 import 'package:not_a_writing_app/features/splash/presentation/pages/splash_screen.dart';
@@ -53,8 +54,8 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
           case '/edit-profile':
             return MaterialPageRoute(builder: (_) => const EditProfileScreen());
-          // case '/createFromPosts':
-          //   return MaterialPageRoute(builder: (_) => const CreateFromPostsScreen());
+          case '/settings':
+            return MaterialPageRoute(builder: (_) => const SettingsScreen());
           default:
             // Unknown route fallback
             return MaterialPageRoute(
