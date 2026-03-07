@@ -633,7 +633,7 @@ class _PostTile extends StatelessWidget {
   color: post.isSaved ? Colors.amber : null,
 ),
 
-const SizedBox(width: 16),
+const SizedBox(width: 26),
 
 _ActionButton(
   icon: Icons.comment_outlined,

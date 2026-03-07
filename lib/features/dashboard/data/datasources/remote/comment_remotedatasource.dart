@@ -28,6 +28,7 @@ class CommentsRemoteDataSourceImpl implements CommentsRemoteDataSource {
   @override
   Future<List<CommentApiModel>> getByPost(String postId) async {
     final res = await api.dio.get(ApiEndpoints.getCommentsByPost(postId));
+    print('COMMENTS RAW: ${res.data}');
     final data = _unwrap(res) as List;
     return data.map((e) => CommentApiModel.fromJson(Map<String, dynamic>.from(e as Map))).toList();
   }

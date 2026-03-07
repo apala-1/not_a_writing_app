@@ -24,7 +24,7 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
   String _pfp(String? v) {
     if (v == null || v.isEmpty) return '';
     if (v.startsWith('http')) return v;
-    return '${ApiEndpoints.serverUrl}/uploads/$v';
+    return '${ApiEndpoints.serverUrl}/uploads/profiles/$v';
   }
 
   Future<String?> _askText({
@@ -61,6 +61,8 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
     final vm = ref.read(commentsVmProvider(widget.postId).notifier);
     final myId = ref.read(userSessionServiceProvider).getUserId();
 
+    final comments = state.comments ?? const [];
+
     return SafeArea(
       child: Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -72,129 +74,143 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
               const Text('Comments', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
               const Divider(),
               if (state.loading) const LinearProgressIndicator(minHeight: 2),
+
               Expanded(
                 child: state.error != null
-                   ? Center(child: Text(state.error!))
-      : RefreshIndicator(
-          onRefresh: () => vm.load(),
-          child: ListView.builder(
-            physics: const AlwaysScrollableScrollPhysics(),
-            itemCount: state.comments.length,
-            itemBuilder: (_, i) {
-                          final cmt = state.comments[i];
-                          final isMine = (myId != null && cmt.user.id == myId);
+                    ? Center(child: Text(state.error!))
+                    : RefreshIndicator(
+                        onRefresh: () => vm.load(),
+                        child: comments.isEmpty
+                            ? ListView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                children: const [
+                                  SizedBox(height: 80),
+                                  Center(child: Text('No comments yet')),
+                                ],
+                              )
+                            : ListView.builder(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                itemCount: comments.length,
+                                itemBuilder: (_, i) {
+                                  final cmt = comments[i];
+                                  final isMine = (myId != null && cmt.user.id == myId);
 
-                          return Column(
-                            children: [
-                              ListTile(
-                                leading: CircleAvatar(
-                                  backgroundImage: (cmt.user.profilePicture == null || cmt.user.profilePicture!.isEmpty)
-                                      ? null
-                                      : NetworkImage(_pfp(cmt.user.profilePicture)),
-                                  child: (cmt.user.profilePicture == null || cmt.user.profilePicture!.isEmpty)
-                                      ? const Icon(Icons.person)
-                                      : null,
-                                ),
-                                title: Text(cmt.user.name),
-                                subtitle: Text(cmt.content),
-                                trailing: PopupMenuButton<String>(
-                                  onSelected: (v) async {
-                                    if (v == 'reply') {
-                                      final text = await _askText(
-                                        context: context,
-                                        title: 'Reply',
-                                        hint: 'Write a reply...',
-                                        okText: 'Send',
-                                      );
-                                      if (text != null) await vm.reply(cmt.id, text);
-                                    }
-
-                                    if (v == 'edit') {
-                                      final text = await _askText(
-                                        context: context,
-                                        title: 'Edit comment',
-                                        initial: cmt.content,
-                                        okText: 'Save',
-                                      );
-                                      if (text != null) await vm.edit(cmt.id, text);
-                                    }
-
-                                    if (v == 'delete') {
-                                      await vm.remove(cmt.id);
-                                    }
-                                  },
-                                  itemBuilder: (_) {
-                                    final items = <PopupMenuEntry<String>>[
-                                      const PopupMenuItem(value: 'reply', child: Text('Reply')),
-                                    ];
-                                    if (isMine) {
-                                      items.addAll(const [
-                                        PopupMenuItem(value: 'edit', child: Text('Edit')),
-                                        PopupMenuItem(value: 'delete', child: Text('Delete')),
-                                      ]);
-                                    }
-                                    return items;
-                                  },
-                                ),
-                              ),
-
-                              // Replies list
-                              if (cmt.replies.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 52, right: 12, bottom: 8),
-                                  child: Column(
-                                    children: cmt.replies.map((r) {
-                                      final isReplyMine = (myId != null && r.user.id == myId);
-
-                                      return ListTile(
-                                        dense: true,
-                                        contentPadding: EdgeInsets.zero,
+                                  return Column(
+                                    children: [
+                                      ListTile(
                                         leading: CircleAvatar(
-                                          radius: 14,
-                                          backgroundImage: (r.user.profilePicture == null || r.user.profilePicture!.isEmpty)
+                                          backgroundImage: (cmt.user.profilePicture == null ||
+                                                  cmt.user.profilePicture!.isEmpty)
                                               ? null
-                                              : NetworkImage(_pfp(r.user.profilePicture)),
-                                          child: (r.user.profilePicture == null || r.user.profilePicture!.isEmpty)
-                                              ? const Icon(Icons.person, size: 16)
+                                              : NetworkImage(_pfp(cmt.user.profilePicture)),
+                                          child: (cmt.user.profilePicture == null ||
+                                                  cmt.user.profilePicture!.isEmpty)
+                                              ? const Icon(Icons.person)
                                               : null,
                                         ),
-                                        title: Text(
-                                          r.user.name,
-                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                                        ),
-                                        subtitle: Text(r.content),
-                                        trailing: isReplyMine
-                                            ? PopupMenuButton<String>(
-                                                onSelected: (v) async {
-                                                  if (v == 'edit') {
-                                                    final text = await _askText(
-                                                      context: context,
-                                                      title: 'Edit reply',
-                                                      initial: r.content,
-                                                      okText: 'Save',
-                                                    );
-                                                    if (text != null) await vm.edit(r.id, text);
-                                                  }
-                                                  if (v == 'delete') await vm.remove(r.id);
-                                                },
-                                                itemBuilder: (_) => const [
-                                                  PopupMenuItem(value: 'edit', child: Text('Edit')),
-                                                  PopupMenuItem(value: 'delete', child: Text('Delete')),
-                                                ],
-                                              )
-                                            : null,
-                                      );
-                                    }).toList(),
-                                  ),
-                                ),
+                                        title: Text(cmt.user.name),
+                                        subtitle: Text(cmt.content),
+                                        trailing: PopupMenuButton<String>(
+                                          onSelected: (v) async {
+                                            if (v == 'reply') {
+                                              final text = await _askText(
+                                                context: context,
+                                                title: 'Reply',
+                                                hint: 'Write a reply...',
+                                                okText: 'Send',
+                                              );
+                                              if (text != null) await vm.reply(cmt.id, text);
+                                            }
 
-                              const Divider(height: 1),
-                            ],
-                          );
-                        },
+                                            if (v == 'edit') {
+                                              final text = await _askText(
+                                                context: context,
+                                                title: 'Edit comment',
+                                                initial: cmt.content,
+                                                okText: 'Save',
+                                              );
+                                              if (text != null) await vm.edit(cmt.id, text);
+                                            }
+
+                                            if (v == 'delete') {
+                                              await vm.remove(cmt.id);
+                                            }
+                                          },
+                                          itemBuilder: (_) {
+                                            final items = <PopupMenuEntry<String>>[
+                                              const PopupMenuItem(value: 'reply', child: Text('Reply')),
+                                            ];
+                                            if (isMine) {
+                                              items.addAll(const [
+                                                PopupMenuItem(value: 'edit', child: Text('Edit')),
+                                                PopupMenuItem(value: 'delete', child: Text('Delete')),
+                                              ]);
+                                            }
+                                            return items;
+                                          },
+                                        ),
+                                      ),
+
+                                      // Replies list
+                                      if (cmt.replies.isNotEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.only(left: 52, right: 12, bottom: 8),
+                                          child: Column(
+                                            children: cmt.replies.map((r) {
+                                              final isReplyMine = (myId != null && r.user.id == myId);
+
+                                              return ListTile(
+                                                dense: true,
+                                                contentPadding: EdgeInsets.zero,
+                                                leading: CircleAvatar(
+                                                  radius: 14,
+                                                  backgroundImage: (r.user.profilePicture == null ||
+                                                          r.user.profilePicture!.isEmpty)
+                                                      ? null
+                                                      : NetworkImage(_pfp(r.user.profilePicture)),
+                                                  child: (r.user.profilePicture == null ||
+                                                          r.user.profilePicture!.isEmpty)
+                                                      ? const Icon(Icons.person, size: 16)
+                                                      : null,
+                                                ),
+                                                title: Text(
+                                                  r.user.name,
+                                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                                                ),
+                                                subtitle: Text(r.content),
+                                                trailing: isReplyMine
+                                                    ? PopupMenuButton<String>(
+                                                        onSelected: (v) async {
+                                                          if (v == 'edit') {
+                                                            final text = await _askText(
+                                                              context: context,
+                                                              title: 'Edit reply',
+                                                              initial: r.content,
+                                                              okText: 'Save',
+                                                            );
+                                                            if (text != null) await vm.edit(r.id, text);
+                                                          }
+                                                          if (v == 'delete') await vm.remove(r.id);
+                                                        },
+                                                        itemBuilder: (_) => const [
+                                                          PopupMenuItem(value: 'edit', child: Text('Edit')),
+                                                          PopupMenuItem(value: 'delete', child: Text('Delete')),
+                                                        ],
+                                                      )
+                                                    : null,
+                                              );
+                                            }).toList(),
+                                          ),
+                                        ),
+
+                                      const Divider(height: 1),
+                                    ],
+                                  );
+                                },
+                              ),
                       ),
               ),
-              ),
+
               Padding(
                 padding: const EdgeInsets.all(12),
                 child: Row(
