@@ -1,6 +1,8 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:not_a_writing_app/core/error/failures.dart';
+import 'package:not_a_writing_app/features/posts/data/models/post_api_model.dart';
+import 'package:not_a_writing_app/features/posts/domain/entities/post_entity.dart';
 import 'package:not_a_writing_app/features/profile/data/datasources/profile_datasource.dart';
 import 'package:not_a_writing_app/features/profile/domain/entities/profile_entity.dart';
 import 'package:not_a_writing_app/features/profile/domain/repositories/profile_repository.dart';
@@ -46,4 +48,16 @@ Future<Either<Failure, ProfileEntity>> updateUser(
     return Left(ApiFailure(message: e.toString()));
   }
 }
+
+@override
+  Future<List<PostEntity>> getLikedPosts() async {
+    final raw = await remote.getLikedPostsRaw();
+    return raw.map((e) => PostApiModel.fromJson(e as Map<String, dynamic>).toEntity()).toList();
+  }
+
+  @override
+  Future<List<PostEntity>> getSavedPosts() async {
+    final raw = await remote.getSavedPostsRaw();
+    return raw.map((e) => PostApiModel.fromJson(e as Map<String, dynamic>).toEntity()).toList();
+  }
 }

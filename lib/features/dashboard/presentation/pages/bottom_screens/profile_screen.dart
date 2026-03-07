@@ -175,9 +175,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
                 _buildActionTile(
                   icon: Icons.bookmark_rounded,
-                  title: 'Saved Collections',
+                  title: 'Liked and Saved Collections',
                   color: Colors.blueAccent,
-                  onTap: () {},
+                  onTap: () => Navigator.pushNamed(context, '/liked-saved'),
                 ),
                 _buildActionTile(
                   icon: Icons.settings_rounded,

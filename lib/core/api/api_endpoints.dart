@@ -94,6 +94,7 @@ static String rankedFeed(String userId) => '$posts/ranked-feed/$userId';
 // GET /profile/:userId/posts
 static String getOwnPosts(String userId) => '$profile/profile/$userId/posts';
 
+
 // ===== PROFILE =====
 static const String profile = '/profile';
 
@@ -108,6 +109,10 @@ static String unfollow() => '$profile/unfollow';
 
 // POST /profile/post-action
 static String postAction() => '$profile/post-action';
+
+
+static const String getLikedPosts = '$profile/me/posts/liked';
+static const String getSavedPosts = '$profile/me/posts/saved';
 
 // ===== COMMENTS =====
 static const String comments = '/comments';

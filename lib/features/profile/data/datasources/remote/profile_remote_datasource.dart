@@ -69,6 +69,16 @@ class ProfileRemoteDatasource implements IProfileRemoteDatasource {
   }
 }
 
+Future<List<dynamic>> getLikedPostsRaw() async {
+    final res = await _apiClient.get(ApiEndpoints.getLikedPosts);
+    return (res.data['data'] as List?) ?? [];
+  }
+
+  Future<List<dynamic>> getSavedPostsRaw() async {
+    final res = await _apiClient.get(ApiEndpoints.getSavedPosts);
+    return (res.data['data'] as List?) ?? [];
+  }
+
   @override
 Future<ProfileApiModel> updateProfile(UpdateProfileParams params) async {
   final formData = FormData();
