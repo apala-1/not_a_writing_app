@@ -1,35 +1,35 @@
-import 'package:not_a_writing_app/features/dashboard/data/datasources/comment_datasource.dart';
+import 'package:not_a_writing_app/features/dashboard/data/datasources/remote/comment_remotedatasource.dart';
 import 'package:not_a_writing_app/features/dashboard/domain/entities/comment_entity.dart';
 import 'package:not_a_writing_app/features/dashboard/domain/repositories/comment_repository.dart';
 
-class CommentRepositoryImpl implements CommentRepository {
-  final CommentRemoteDataSource remote;
-
-  CommentRepositoryImpl(this.remote);
+class CommentsRepositoryImpl implements CommentsRepository {
+  final CommentsRemoteDataSource remote;
+  CommentsRepositoryImpl(this.remote);
 
   @override
-  Future<List<CommentEntity>> getComments(String postId) {
-    return remote.getComments(postId);
+  Future<List<CommentEntity>> getByPost(String postId) async {
+    final models = await remote.getByPost(postId);
+    return models.map((m) => m.toEntity()).toList();
   }
 
   @override
-  Future<CommentEntity> createComment(String postId, String content) {
-    return remote.createComment(postId, content);
+  Future<CommentEntity> create({required String postId, required String content}) async {
+    final m = await remote.create(postId: postId, content: content);
+    return m.toEntity();
   }
 
   @override
-  Future<CommentEntity> updateComment(String commentId, String content) {
-    return remote.updateComment(commentId, content);
+  Future<CommentEntity> reply({required String postId, required String parentCommentId, required String content}) async {
+    final m = await remote.reply(postId: postId, parentCommentId: parentCommentId, content: content);
+    return m.toEntity();
   }
 
   @override
-  Future<void> deleteComment(String commentId) {
-    return remote.deleteComment(commentId);
+  Future<CommentEntity> update({required String commentId, required String content}) async {
+    final m = await remote.update(commentId: commentId, content: content);
+    return m.toEntity();
   }
 
   @override
-Future<List<CommentEntity>> getWholeCommentWithProfile(String userId) async {
-  final models = await remote.getWholeCommentWithProfile(userId);
-  return models.map((e) => e.toEntity()).toList();
-}
+  Future<void> delete(String commentId) => remote.delete(commentId);
 }

@@ -1,100 +1,71 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import 'package:not_a_writing_app/core/api/api_client.dart';
 import 'package:not_a_writing_app/core/api/api_endpoints.dart';
-import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
-import 'package:not_a_writing_app/features/dashboard/data/datasources/comment_datasource.dart';
 import 'package:not_a_writing_app/features/dashboard/data/models/comment_api_model.dart';
 
-class CommentRemoteDataSourceImpl implements CommentRemoteDataSource {
-  final UserSessionService _userSessionService;
-  final ApiClient _apiClient;
-
-  CommentRemoteDataSourceImpl({required UserSessionService userSessionService, required ApiClient apiClient})
-      : _userSessionService = userSessionService,
-        _apiClient = apiClient;
-
-  Future<String> _getToken() async =>
-      await _userSessionService.getUserToken() ?? '';
-
-  @override
-  Future<List<CommentApiModel>> getComments(String postId) async {
-    final uri =
-        Uri.parse('${ApiEndpoints.baseUrl}${ApiEndpoints.getCommentsByPost(postId)}');
-
-    final res = await http.get(
-      uri,
-      headers: {'Authorization': 'Bearer ${await _getToken()}', 'Content-Type': 'application/json'},
-    );
-
-    if (res.statusCode != 200) {
-      throw Exception('Failed to fetch comments: ${res.body}');
-    }
-
-    final data = jsonDecode(res.body)['data'] as List;
-    return data.map((json) => CommentApiModel.fromJson(json)).toList();
-  }
-
-  @override
-  Future<CommentApiModel> createComment(String postId, String content) async {
-    final uri = Uri.parse('${ApiEndpoints.baseUrl}${ApiEndpoints.createComment()}');
-
-    final res = await http.post(
-      uri,
-      headers: {'Authorization': 'Bearer ${await _getToken()}', 'Content-Type': 'application/json'},
-      body: jsonEncode({'postId': postId, 'content': content}),
-    );
-
-    if (res.statusCode != 201) {
-      throw Exception('Failed to create comment: ${res.body}');
-    }
-
-    final data = jsonDecode(res.body)['data'];
-    return CommentApiModel.fromJson(data);
-  }
-
-  @override
-  Future<CommentApiModel> updateComment(String commentId, String content) async {
-    final uri = Uri.parse('${ApiEndpoints.baseUrl}${ApiEndpoints.updateComment(commentId)}');
-    print('Updating comment at $uri');
-    final res = await http.patch(
-      uri,
-      headers: {'Authorization': 'Bearer ${await _getToken()}', 'Content-Type': 'application/json'},
-      body: jsonEncode({'content': content}),
-    );
-
-    if (res.statusCode != 200) {
-      throw Exception('Failed to update comment: ${res.body}');
-    }
-
-    final data = jsonDecode(res.body)['data'];
-    return CommentApiModel.fromJson(data);
-  }
-
-  @override
-  Future<void> deleteComment(String commentId) async {
-    final uri = Uri.parse('${ApiEndpoints.baseUrl}${ApiEndpoints.deleteComment(commentId)}');
-
-    final res = await http.delete(
-      uri,
-      headers: {'Authorization': 'Bearer ${await _getToken()}', 'Content-Type': 'application/json'},
-    );
-
-    if (res.statusCode != 200) {
-      throw Exception('Failed to delete comment: ${res.body}');
-    }
-  }
-
-  Future<List<CommentApiModel>> getWholeCommentWithProfile(String userId) async {
-  final response = await _apiClient.get(
-    ApiEndpoints.getWholeCommentWithProfile(userId),
-  );
-
-  if (response.statusCode == 200) {
-    final List data = response.data['data'];
-    return data.map((e) => CommentApiModel.fromJson(e)).toList();
-  } else {
-    throw Exception('Failed to fetch comments');
-  }
+abstract class CommentsRemoteDataSource {
+  Future<List<CommentApiModel>> getByPost(String postId);
+  Future<CommentApiModel> create({required String postId, required String content});
+  Future<CommentApiModel> reply({
+    required String postId,
+    required String parentCommentId,
+    required String content,
+  });
+  Future<CommentApiModel> update({required String commentId, required String content});
+  Future<void> delete(String commentId);
 }
+
+class CommentsRemoteDataSourceImpl implements CommentsRemoteDataSource {
+  final ApiClient api;
+  CommentsRemoteDataSourceImpl(this.api);
+
+  dynamic _unwrap(Response res) {
+    final body = res.data;
+    if (body is Map<String, dynamic> && body.containsKey('data')) return body['data'];
+    return body;
+  }
+
+  @override
+  Future<List<CommentApiModel>> getByPost(String postId) async {
+    final res = await api.dio.get(ApiEndpoints.getCommentsByPost(postId));
+    final data = _unwrap(res) as List;
+    return data.map((e) => CommentApiModel.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+  }
+
+  @override
+  Future<CommentApiModel> create({required String postId, required String content}) async {
+    final res = await api.dio.post(ApiEndpoints.createComment(), data: {
+      'postId': postId,
+      'content': content,
+    });
+    final data = _unwrap(res) as Map<String, dynamic>;
+    return CommentApiModel.fromJson(data);
+  }
+
+  @override
+  Future<CommentApiModel> reply({
+    required String postId,
+    required String parentCommentId,
+    required String content,
+  }) async {
+    final res = await api.dio.post(ApiEndpoints.replyComment(), data: {
+      'postId': postId,
+      'parentCommentId': parentCommentId,
+      'content': content,
+    });
+    final data = _unwrap(res) as Map<String, dynamic>;
+    return CommentApiModel.fromJson(data);
+  }
+
+  @override
+  Future<CommentApiModel> update({required String commentId, required String content}) async {
+    final res = await api.dio.patch(ApiEndpoints.updateComment(commentId), data: {'content': content});
+    final data = _unwrap(res) as Map<String, dynamic>;
+    return CommentApiModel.fromJson(data);
+  }
+
+  @override
+  Future<void> delete(String commentId) async {
+    await api.dio.delete(ApiEndpoints.deleteComment(commentId));
+  }
 }

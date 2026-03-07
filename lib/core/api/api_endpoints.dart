@@ -112,24 +112,11 @@ static String postAction() => '$profile/post-action';
 // ===== COMMENTS =====
 static const String comments = '/comments';
 
-// GET /comments/post/:postId
-static String getCommentsByPost(String postId) =>
-    '$comments/post/$postId';
-
-// POST /comments
-static String createComment() => comments;
-
-// PATCH /comments/:id
-static String updateComment(String commentId) =>
-    '$comments/$commentId';
-
-// DELETE /comments/:id
-static String deleteComment(String commentId) =>
-    '$comments/$commentId';
-
-// GET /comments/whole-comment/:userId
-static String getWholeCommentWithProfile(String userId) =>
-    '$comments/whole-comment/$userId';
+static String createComment() => comments; // POST /comments
+static String getCommentsByPost(String postId) => '$comments/post/$postId'; // GET
+static String updateComment(String commentId) => '$comments/$commentId'; // PATCH
+static String deleteComment(String commentId) => '$comments/$commentId'; // DELETE
+static String replyComment() => '$comments/reply'; // POST /comments/reply
 
 // ===== FOLLOW =====
 static const String followBase = '/follow';

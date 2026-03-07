@@ -1,15 +1,23 @@
+import 'comment_user_entity.dart';
+
 class CommentEntity {
   final String id;
   final String postId;
-  final String userId;
+  final CommentUserEntity user;
   final String content;
-  final DateTime createdAt;
+  final String? parentCommentId;
+  final List<CommentEntity> replies;
+  final DateTime? createdAt;
 
-  CommentEntity({
+  const CommentEntity({
     required this.id,
     required this.postId,
-    required this.userId,
+    required this.user,
     required this.content,
+    required this.parentCommentId,
+    required this.replies,
     required this.createdAt,
   });
+
+  bool get isReply => parentCommentId != null;
 }

@@ -1,12 +1,11 @@
 import 'package:not_a_writing_app/features/dashboard/domain/entities/comment_entity.dart';
 import 'package:not_a_writing_app/features/dashboard/domain/repositories/comment_repository.dart';
 
-class CreateCommentUseCase {
-  final CommentRepository repository;
+class CreateCommentUsecase {
+  final CommentsRepository repo;
+  CreateCommentUsecase(this.repo);
 
-  CreateCommentUseCase(this.repository);
-
-  Future<CommentEntity> call(String postId, String content) {
-    return repository.createComment(postId, content);
+  Future<CommentEntity> call({required String postId, required String content}) {
+    return repo.create(postId: postId, content: content);
   }
 }

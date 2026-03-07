@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:not_a_writing_app/core/services/storage/user_service.dart';
+import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:not_a_writing_app/features/dashboard/presentation/view_model/comments_view_model.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/widgets/comments_sheet.dart';
 import 'package:not_a_writing_app/features/posts/domain/entities/post_entity.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
@@ -454,7 +456,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     );
                   }
                   final post = state.posts[index];
-                 final currentUserId = ref.read(userSessionProvider).getUserId();
+                 final currentUserId = ref.read(userSessionServiceProvider).getUserId();
 final isMine = post.author?.id == currentUserId;
 print('aUTHOR: ${post.author?.id}');
 print("cURRENT USER: ${currentUserId}");
@@ -629,6 +631,20 @@ class _PostTile extends StatelessWidget {
   label: "${post.savesCount}",
   onTap: onSave,
   color: post.isSaved ? Colors.amber : null,
+),
+
+const SizedBox(width: 16),
+
+_ActionButton(
+  icon: Icons.comment_outlined,
+  label: "Comments",
+  onTap: () {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => CommentsSheet(postId: post.id),
+    );
+  },
 ),
 
               const Spacer(),

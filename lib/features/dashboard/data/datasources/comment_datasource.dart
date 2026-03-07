@@ -4,15 +4,6 @@ import 'package:not_a_writing_app/core/services/storage/user_session_service.dar
 import 'package:not_a_writing_app/features/dashboard/data/datasources/remote/comment_remotedatasource.dart';
 import 'package:not_a_writing_app/features/dashboard/data/models/comment_api_model.dart';
 
-final commentRemoteDatasourceProvider = Provider<CommentRemoteDataSource>((ref) {
-  final userSessionService = ref.read(userSessionServiceProvider);
-  final apiClient = ref.read(apiClientProvider);
-  return CommentRemoteDataSourceImpl(
-    userSessionService: userSessionService,
-    apiClient: apiClient,
-  );
-});
-
 abstract class CommentRemoteDataSource {
   Future<List<CommentApiModel>> getComments(String postId);
   Future<CommentApiModel> createComment(String postId, String content);

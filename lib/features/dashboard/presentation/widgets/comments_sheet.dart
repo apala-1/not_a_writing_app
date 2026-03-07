@@ -1,186 +1,225 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:not_a_writing_app/core/api/api_endpoints.dart';
-import 'package:not_a_writing_app/features/dashboard/presentation/view_model/comments_view_model.dart';
 import 'package:not_a_writing_app/core/services/storage/user_session_service.dart';
-import 'package:not_a_writing_app/features/profile/presentation/viewmodel/profile_view_model.dart';
+import 'package:not_a_writing_app/features/dashboard/presentation/providers/comments_providers.dart';
 
 class CommentsSheet extends ConsumerStatefulWidget {
   final String postId;
-  const CommentsSheet({required this.postId});
+  const CommentsSheet({super.key, required this.postId});
 
   @override
   ConsumerState<CommentsSheet> createState() => _CommentsSheetState();
 }
 
 class _CommentsSheetState extends ConsumerState<CommentsSheet> {
-  final TextEditingController _controller = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(() {
-      ref
-          .read(commentViewModelProvider.notifier)
-          .loadCommentsWithProfiles(widget.postId, ref);
-    });
-  }
+  final ctrl = TextEditingController();
 
   @override
   void dispose() {
-    _controller.dispose();
+    ctrl.dispose();
     super.dispose();
   }
 
-  CommentWithProfile? _editingComment;
-
-void _postComment() async {
-  final text = _controller.text.trim();
-  if (text.isEmpty) return;
-
-  if (_editingComment != null) {
-    // Editing existing comment
-    await ref
-        .read(commentViewModelProvider.notifier)
-        .update(_editingComment!.comment.id, text, widget.postId);
-    _editingComment = null; // reset after update
-  } else {
-    // New comment
-    await ref.read(commentViewModelProvider.notifier).add(widget.postId, text);
+  String _pfp(String? v) {
+    if (v == null || v.isEmpty) return '';
+    if (v.startsWith('http')) return v;
+    return '${ApiEndpoints.serverUrl}/uploads/$v';
   }
 
-  _controller.clear();
-}
-
-  void _showCommentOptions(CommentWithProfile comment) {
-    final currentUserId =
-        ref.read(userSessionServiceProvider).getUserId() ?? '';
-
-    final isOwner = comment.comment.userId == currentUserId;
-
-    showModalBottomSheet(
+  Future<String?> _askText({
+    required BuildContext context,
+    required String title,
+    String initial = '',
+    String hint = '',
+    String okText = 'Save',
+  }) async {
+    final c = TextEditingController(text: initial);
+    final ok = await showDialog<bool>(
       context: context,
-      builder: (_) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (isOwner)
-            ListTile(
-              title: const Text("Edit"),
-              onTap: () {
-                Navigator.pop(context);
-                _controller.text = comment.comment.content;
-                _editingComment = comment;
-              },
-            ),
-          if (isOwner)
-            ListTile(
-              title: const Text("Delete"),
-              onTap: () async {
-                Navigator.pop(context);
-                await ref
-                    .read(commentViewModelProvider.notifier)
-                    .delete(comment.comment.id, widget.postId);
-              },
-            ),
-          if (!isOwner)
-            ListTile(
-              title: const Text("Report"),
-              onTap: () => Navigator.pop(context),
-            ),
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: TextField(
+          controller: c,
+          decoration: InputDecoration(hintText: hint),
+          minLines: 1,
+          maxLines: 4,
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(okText)),
         ],
       ),
     );
+    if (ok == true) return c.text;
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(commentViewModelProvider);
-    final profiles = ref.watch(profileViewmodelProvider).profileEntity;
+    final state = ref.watch(commentsVmProvider(widget.postId));
+    final vm = ref.read(commentsVmProvider(widget.postId).notifier);
+    final myId = ref.read(userSessionServiceProvider).getUserId();
 
-    return DraggableScrollableSheet(
-      expand: false,
-      builder: (context, scrollController) {
-        return Column(
-          children: [
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                child: state.comments.when(
-                  data: (comments) {
-                    if (comments.isEmpty) {
-                      return const Center(child: Text('No comments yet'));
-                    }
-                    return ListView.builder(
-                      controller: scrollController,
-                      itemCount: comments.length,
-                      itemBuilder: (context, index) {
-                        final comment = comments[index];
-                        final commentProfile = comment.userProfile;
-                        return GestureDetector(
-                          onLongPress: () => _showCommentOptions(comment),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundImage: (profiles?.profilePicture != null &&
-          profiles!.profilePicture.isNotEmpty &&
-          profiles.profilePicture != 'default-picture.png')
-                                  ? NetworkImage('${ApiEndpoints.mediaServerUrl}/uploads/${commentProfile?.profilePicture}')
-                                  : AssetImage('assets/images/google.png') as ImageProvider,
-                              onBackgroundImageError: (_, _) =>
-                                  const Icon(Icons.person),
-                            ),
-                            title: Text(commentProfile?.name ?? 'Unknown'),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(comment.comment.content),
-                                const SizedBox(height: 4),
-                                Text(
-                                  comment.createdAtFormatted,
-                                  style: const TextStyle(
-                                      fontSize: 12, color: Colors.grey),
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.75,
+          child: Column(
+            children: [
+              const SizedBox(height: 10),
+              const Text('Comments', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              const Divider(),
+              if (state.loading) const LinearProgressIndicator(minHeight: 2),
+              Expanded(
+                child: state.error != null
+                   ? Center(child: Text(state.error!))
+      : RefreshIndicator(
+          onRefresh: () => vm.load(),
+          child: ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemCount: state.comments.length,
+            itemBuilder: (_, i) {
+                          final cmt = state.comments[i];
+                          final isMine = (myId != null && cmt.user.id == myId);
+
+                          return Column(
+                            children: [
+                              ListTile(
+                                leading: CircleAvatar(
+                                  backgroundImage: (cmt.user.profilePicture == null || cmt.user.profilePicture!.isEmpty)
+                                      ? null
+                                      : NetworkImage(_pfp(cmt.user.profilePicture)),
+                                  child: (cmt.user.profilePicture == null || cmt.user.profilePicture!.isEmpty)
+                                      ? const Icon(Icons.person)
+                                      : null,
                                 ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (e, st) => Center(child: Text('Error: $e')),
-                ),
-              ),
-            ),
+                                title: Text(cmt.user.name),
+                                subtitle: Text(cmt.content),
+                                trailing: PopupMenuButton<String>(
+                                  onSelected: (v) async {
+                                    if (v == 'reply') {
+                                      final text = await _askText(
+                                        context: context,
+                                        title: 'Reply',
+                                        hint: 'Write a reply...',
+                                        okText: 'Send',
+                                      );
+                                      if (text != null) await vm.reply(cmt.id, text);
+                                    }
 
-            SafeArea(
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    if (v == 'edit') {
+                                      final text = await _askText(
+                                        context: context,
+                                        title: 'Edit comment',
+                                        initial: cmt.content,
+                                        okText: 'Save',
+                                      );
+                                      if (text != null) await vm.edit(cmt.id, text);
+                                    }
+
+                                    if (v == 'delete') {
+                                      await vm.remove(cmt.id);
+                                    }
+                                  },
+                                  itemBuilder: (_) {
+                                    final items = <PopupMenuEntry<String>>[
+                                      const PopupMenuItem(value: 'reply', child: Text('Reply')),
+                                    ];
+                                    if (isMine) {
+                                      items.addAll(const [
+                                        PopupMenuItem(value: 'edit', child: Text('Edit')),
+                                        PopupMenuItem(value: 'delete', child: Text('Delete')),
+                                      ]);
+                                    }
+                                    return items;
+                                  },
+                                ),
+                              ),
+
+                              // Replies list
+                              if (cmt.replies.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 52, right: 12, bottom: 8),
+                                  child: Column(
+                                    children: cmt.replies.map((r) {
+                                      final isReplyMine = (myId != null && r.user.id == myId);
+
+                                      return ListTile(
+                                        dense: true,
+                                        contentPadding: EdgeInsets.zero,
+                                        leading: CircleAvatar(
+                                          radius: 14,
+                                          backgroundImage: (r.user.profilePicture == null || r.user.profilePicture!.isEmpty)
+                                              ? null
+                                              : NetworkImage(_pfp(r.user.profilePicture)),
+                                          child: (r.user.profilePicture == null || r.user.profilePicture!.isEmpty)
+                                              ? const Icon(Icons.person, size: 16)
+                                              : null,
+                                        ),
+                                        title: Text(
+                                          r.user.name,
+                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                                        ),
+                                        subtitle: Text(r.content),
+                                        trailing: isReplyMine
+                                            ? PopupMenuButton<String>(
+                                                onSelected: (v) async {
+                                                  if (v == 'edit') {
+                                                    final text = await _askText(
+                                                      context: context,
+                                                      title: 'Edit reply',
+                                                      initial: r.content,
+                                                      okText: 'Save',
+                                                    );
+                                                    if (text != null) await vm.edit(r.id, text);
+                                                  }
+                                                  if (v == 'delete') await vm.remove(r.id);
+                                                },
+                                                itemBuilder: (_) => const [
+                                                  PopupMenuItem(value: 'edit', child: Text('Edit')),
+                                                  PopupMenuItem(value: 'delete', child: Text('Delete')),
+                                                ],
+                                              )
+                                            : null,
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+
+                              const Divider(height: 1),
+                            ],
+                          );
+                        },
+                      ),
+              ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
                     Expanded(
                       child: TextField(
-                        controller: _controller,
-                        decoration: const InputDecoration(
-                          hintText: 'Write a comment...',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
+                        controller: ctrl,
+                        decoration: const InputDecoration(hintText: 'Write a comment...'),
                       ),
                     ),
-                    const SizedBox(width: 8),
                     IconButton(
                       icon: const Icon(Icons.send),
-                      onPressed: _postComment,
-                    ),
+                      onPressed: () async {
+                        final t = ctrl.text;
+                        ctrl.clear();
+                        await vm.addComment(t);
+                      },
+                    )
                   ],
                 ),
               ),
-            ),
-          ],
-        );
-      },
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
